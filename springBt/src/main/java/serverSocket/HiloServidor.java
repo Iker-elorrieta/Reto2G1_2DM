@@ -32,6 +32,7 @@ public class HiloServidor extends Thread {
                 try {
                     String operacion = entrada.readUTF();
 
+                    // ================= LOGIN =================
                     if (operacion.equalsIgnoreCase("LOGIN")) {
 
                         String usuario = entrada.readUTF();
@@ -40,33 +41,48 @@ public class HiloServidor extends Thread {
                         LoginService loginService = new LoginService();
                         Users user = loginService.login(usuario, password);
 
-                        int codigo = 0;
-                        int id = -1;
+                        int codigo;
+                        int idUsuario = -1;
 
-                        if (user != null) {
-                       
-                        	if (user.getTipos().getId() == 4) {
-                        	    codigo = 2;
-                        	} else {
-                        	    codigo = 1;
-                        	}
+                        if (user == null || user.getTipos() == null) {
+                            // Usuario o contraseña incorrectos
+                            codigo = 0;
 
-                            id = user.getId();
+                        } else if (user.getTipos().getId() == 3) {
+                            // PROFESOR
+                            codigo = 1;
+                            idUsuario = user.getId();
+
+                        } else {
+                            // Cualquier otro tipo
+                            codigo = 2;
                         }
 
                         salida.writeInt(codigo);
-                        salida.writeInt(id);
+                        salida.writeInt(idUsuario);
                         salida.flush();
 
-                        System.out.println("Login procesado: usuario=" + usuario + " | codigo=" + codigo + " | id=" + id);
+                        System.out.println(
+                            "Login procesado: usuario=" + usuario +
+                            " | codigo=" + codigo +
+                            " | idUsuario=" + idUsuario
+                        );
+                    }
 
-                    } else {
+                    // ================= LOGOUT =================
+                    else if (operacion.equalsIgnoreCase("LOGOUT")) {
+                        System.out.println("Cliente solicitó desconexión: " + conx.getRemoteSocketAddress());
+                        activo = false;
+                    }
+
+                    // ================= DESCONOCIDO =================
+                    else {
                         System.out.println("Comando desconocido: " + operacion);
                     }
 
                 } catch (Exception e) {
                     System.out.println("Cliente desconectado: " + conx.getRemoteSocketAddress());
-                    activo = false; 
+                    activo = false;
                 }
             }
 
