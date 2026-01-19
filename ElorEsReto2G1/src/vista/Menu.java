@@ -76,7 +76,7 @@ public class Menu extends JFrame {
         
         lblelo.setBounds(0, 0, 220, 96);
         panelIzq.add(lblelo);
-        lblelo.setIcon(new ImageIcon("C:\\Users\\in2dm3-a\\eclipse-workspace\\ElorEsReto2G1\\media\\logoelo.png"));
+        lblelo.setIcon(new ImageIcon("logoelo.png"));
         
                 JLabel lblPerfil = new JLabel("Perfil");
                 lblPerfil.setBounds(10, 80, 180, 25);
@@ -142,6 +142,6 @@ public class Menu extends JFrame {
         JLabel lblbanner = new JLabel("");
         lblbanner.setBounds(260, 28, 480, 68);
         contentPane.add(lblbanner);
-        lblbanner.setIcon(new ImageIcon("C:\\Users\\in2dm3-a\\eclipse-workspace\\ElorEsReto2G1\\media\\logoelorrieta.jpg"));
+        lblbanner.setIcon(new ImageIcon("logoelorrieta.jpg"));
     }
 }

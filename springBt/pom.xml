@@ -56,12 +56,6 @@
             <version>5.1.48</version>
         </dependency>
 
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.36</version>
-        </dependency>
 
         <!-- JAXB (para XML) -->
         <dependency>
@@ -70,11 +64,6 @@
             <version>2.3.1</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>2.3.1</version>
-        </dependency>
 
         <!-- Gson (para convertir JSON <-> Java) -->
         <dependency>
