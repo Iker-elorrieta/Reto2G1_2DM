@@ -112,4 +112,21 @@ public class Controlador {
 		}
 	}
 
+	public void desconectar() {
+		// TODO Auto-generated method stub
+		try {
+            if (socket != null && !socket.isClosed()) {
+
+           //Avisamos y luego se sale
+                salida.writeUTF("LOGOUT");
+                salida.flush();
+
+                socket.close();
+                System.out.println("Socket cerrado correctamente");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+	
 }

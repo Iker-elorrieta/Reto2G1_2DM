@@ -87,8 +87,7 @@ public class Login extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 
 				try {
-					// ✔ USAR EL SOCKET QUE YA RECIBISTE EN EL CONSTRUCTOR
-
+				
 					String usu = txtUsu.getText();
 					String cntr = new String(txtCntr.getPassword());
 
@@ -103,9 +102,7 @@ public class Login extends JFrame {
 						setVisible(false);
 
 					} else if (codigo == 2) {
-						JOptionPane.showMessageDialog(null, "Los alumnos no pueden iniciar sesión", "Acceso Denegado",
-								JOptionPane.WARNING_MESSAGE);
-
+						JOptionPane.showMessageDialog(null,"Solo los profesores pueden iniciar sesión","Acceso denegado",JOptionPane.WARNING_MESSAGE);
 					} else {
 						JOptionPane.showMessageDialog(null, "Usuario o contraseña incorrectos", "Acceso Denegado",
 								JOptionPane.ERROR_MESSAGE);

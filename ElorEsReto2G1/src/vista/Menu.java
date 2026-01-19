@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.net.Socket;
 import java.awt.event.ActionEvent;
+import vista.Login; // o la clase de tu pantalla de login
 
 public class Menu extends JFrame {
 
@@ -87,6 +88,32 @@ public class Menu extends JFrame {
                 btnDesc.setFocusPainted(false);
                 btnDesc.setBounds(20, 371, 180, 56);
                 panelIzq.add(btnDesc);
+                btnDesc.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+
+                        int opcion = JOptionPane.showConfirmDialog(
+                                null,
+                                "¿Deseas cerrar la sesión?",
+                                "Confirmar desconexión",
+                                JOptionPane.YES_NO_OPTION
+                        );
+
+                        if (opcion == JOptionPane.YES_OPTION) {
+
+                         
+                            controlador.desconectar();
+
+                           
+                            Login login = new Login(socket);
+                            login.setVisible(true);
+
+                           
+                            dispose();
+                        }
+                    }
+                });
+
+
 
         // ===== PANEL DERECHO =====
         JPanel panelDer = new JPanel();
@@ -112,10 +139,29 @@ public class Menu extends JFrame {
         JButton btnConsultarHorario = new JButton("Consultar horario");
         btnConsultarHorario.setBounds(40, 31, 180, 138);
         panelHorario.add(btnConsultarHorario);
+        btnConsultarHorario.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	Horario panelHorario = new Horario();
+            	panelHorario.setVisible(true);
+            	setVisible(false);
+            	
+            	
+            }
+        });
+        
 
         JButton btnOtrosHorarios = new JButton("Consultar otros horarios");
         btnOtrosHorarios.setBounds(243, 31, 202, 138);
         panelHorario.add(btnOtrosHorarios);
+        btnOtrosHorarios.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	OtrsHorarios panelHorarios = new OtrsHorarios();
+            	panelHorarios.setVisible(true);
+            	setVisible(false);
+            	
+            	
+            }
+        });
 
         // ===== REUNIONES =====
         JPanel panelReuniones = new JPanel();
@@ -138,6 +184,17 @@ public class Menu extends JFrame {
         JButton btnVerReuniones = new JButton("Ver reuniones");
         btnVerReuniones.setBounds(242, 29, 209, 140);
         panelReuniones.add(btnVerReuniones);
+        btnVerReuniones.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	VerReuniones panelReuniones = new VerReuniones();
+            	panelReuniones.setVisible(true);
+            	setVisible(false);
+            	
+            	
+            }
+        });
+    
+            
         
         JLabel lblbanner = new JLabel("");
         lblbanner.setBounds(260, 28, 480, 68);
