@@ -9,9 +9,13 @@ import java.net.Socket;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.google.gson.Gson;
 
+import modelo.Horarios;
 import modelo.Users;
 
 public class Controlador {
@@ -128,5 +132,58 @@ public class Controlador {
             e.printStackTrace();
         }
     }
-	
-}
+
+	public List<Users> obtenerAlumnos(int idProfesor) {
+		
+		    try {
+		        URI uri = URI.create("http://localhost:8080/api/profesor/" + idProfesor + "/alumnos");
+		        HttpURLConnection con = (HttpURLConnection) uri.toURL().openConnection();
+		        con.setRequestMethod("GET");
+
+		        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		        StringBuilder response = new StringBuilder();
+		        String line;
+
+		        while ((line = in.readLine()) != null) {
+		            response.append(line);
+		        }
+		        in.close();
+
+		        Gson gson = new Gson();
+		        Users[] alumnosArray = gson.fromJson(response.toString(), Users[].class);
+
+		        return Arrays.asList(alumnosArray);
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        return new ArrayList<>();
+		    }
+		}
+
+	public List<Horarios> obtenerHorario(int idProfesor) {
+	    try {
+	        URI uri = URI.create("http://localhost:8080/api/horario/" + idProfesor);
+	        HttpURLConnection con = (HttpURLConnection) uri.toURL().openConnection();
+	        con.setRequestMethod("GET");
+
+	        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+	        StringBuilder response = new StringBuilder();
+	        String line;
+
+	        while ((line = in.readLine()) != null) {
+	            response.append(line);
+	        }
+	        in.close();
+
+	        Gson gson = new Gson();
+	        Horarios[] horarioArray = gson.fromJson(response.toString(), Horarios[].class);
+
+	        return Arrays.asList(horarioArray);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return new ArrayList<>();
+	    }
+	}
+
+	}

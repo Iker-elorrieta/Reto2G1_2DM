@@ -23,7 +23,7 @@ public class InicioCliente extends JFrame {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				Image img = new ImageIcon("fondo2.jpg").getImage();
+				Image img = new ImageIcon("main/media/fondo2.jpg").getImage();
 				g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
 			}
 		};

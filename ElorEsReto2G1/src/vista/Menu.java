@@ -10,7 +10,6 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.net.Socket;
 import java.awt.event.ActionEvent;
-import vista.Login; // o la clase de tu pantalla de login
 
 public class Menu extends JFrame {
 
@@ -46,10 +45,11 @@ public class Menu extends JFrame {
             public void actionPerformed(ActionEvent e) {
 
 	                Users user = controlador.obtenerPerfil(idUsuario);
-	
+	              
 	                if (user != null) {
-	                    Perfil perfil = new Perfil(user);
+	                    Perfil perfil = new Perfil(user,Menu.this);
 	                    perfil.setVisible(true);
+	                    setVisible(false);
 	                } else {
 	                    JOptionPane.showMessageDialog(null, 
 	                        "No se pudo obtener el perfil del usuario.",
@@ -66,7 +66,9 @@ public class Menu extends JFrame {
         JButton btnAlumnos = new JButton("👤  Consultar Alumnos");
         btnAlumnos.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		
+        		Alumnos vntnAlumn = new Alumnos(controlador, idUsuario,Menu.this);
+        		vntnAlumn.setVisible(true); 
+        		setVisible(false);
         	}
         });
         btnAlumnos.setBounds(20, 201, 180, 145);
@@ -106,8 +108,6 @@ public class Menu extends JFrame {
                            
                             Login login = new Login(socket);
                             login.setVisible(true);
-
-                           
                             dispose();
                         }
                     }
@@ -141,7 +141,7 @@ public class Menu extends JFrame {
         panelHorario.add(btnConsultarHorario);
         btnConsultarHorario.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	Horario panelHorario = new Horario();
+            	Horario panelHorario = new Horario(controlador,idUsuario,Menu.this);
             	panelHorario.setVisible(true);
             	setVisible(false);
             	
