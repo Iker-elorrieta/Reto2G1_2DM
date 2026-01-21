@@ -43,4 +43,31 @@ public class AlumnoService {
             return alumnos;
         }
     }
+
+    public List<Users> getProfesores() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            List<Users> profesores = session.createQuery(
+                    "FROM Users WHERE tipos.id = 3", Users.class
+            ).list();
+
+            for (Users u : profesores) {
+
+                // Inicializar tipo
+                if (u.getTipos() != null) {
+                    Hibernate.initialize(u.getTipos());
+                    u.getTipos().setUserses(null);
+                }
+
+                // Limpiar colecciones LAZY
+                u.setMatriculacioneses(null);
+                u.setReunionesesForAlumnoId(null);
+                u.setReunionesesForProfesorId(null);
+                u.setHorarioses(null);
+            }
+
+            return profesores;
+        }
+    }
+
 }

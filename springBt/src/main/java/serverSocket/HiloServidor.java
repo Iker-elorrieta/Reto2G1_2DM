@@ -20,12 +20,19 @@ public class HiloServidor extends Thread {
     private Socket conx;
     private Gson gson;
 
+    // Servicios creados UNA sola vez
+    private final LoginService loginService = new LoginService();
+    private final PerfilService perfilService = new PerfilService();
+    private final AlumnoService alumnoService = new AlumnoService();
+    private final HorarioService horarioService = new HorarioService();
+
     public HiloServidor(Socket conx) {
         this.conx = conx;
-        // Configurar Gson para manejar proxies de Hibernate
+
+        // Gson configurado para evitar problemas con Hibernate
         this.gson = new GsonBuilder()
-            .setExclusionStrategies(new HibernateProxyExclusionStrategy())
-            .create();
+                .setExclusionStrategies(new HibernateProxyExclusionStrategy())
+                .create();
     }
 
     @Override
@@ -46,103 +53,111 @@ public class HiloServidor extends Thread {
                     String operacion = entrada.readUTF();
                     System.out.println("Comando recibido: " + operacion);
 
-                    // ================= LOGIN =================
-                    if (operacion.equalsIgnoreCase("LOGIN")) {
+                    switch (operacion.toUpperCase()) {
 
-                        String usuario = entrada.readUTF();
-                        String password = entrada.readUTF();
+                        // ================= LOGIN =================
+                        case "LOGIN": {
+                            String usuario = entrada.readUTF();
+                            String password = entrada.readUTF();
 
-                        LoginService loginService = new LoginService();
-                        Users user = loginService.login(usuario, password);
+                            Users user = loginService.login(usuario, password);
 
-                        int codigo;
-                        int idUsuario = -1;
+                            int codigo;
+                            int idUsuario = -1;
 
-                        if (user == null || user.getTipos() == null) {
-                            // Usuario o contraseña incorrectos
-                            codigo = 0;
+                            if (user == null || user.getTipos() == null) {
+                                codigo = 0; // Incorrecto
+                            } else if (user.getTipos().getId() == 3) {
+                                codigo = 1; // Profesor
+                                idUsuario = user.getId();
+                            } else {
+                                codigo = 2; // Otros roles
+                            }
 
-                        } else if (user.getTipos().getId() == 3) {
-                            // PROFESOR
-                            codigo = 1;
-                            idUsuario = user.getId();
+                            salida.writeInt(codigo);
+                            salida.writeInt(idUsuario);
+                            salida.flush();
 
-                        } else {
-                            // Cualquier otro tipo
-                            codigo = 2;
+                            System.out.println("Login procesado: usuario=" + usuario +
+                                    " | codigo=" + codigo +
+                                    " | idUsuario=" + idUsuario);
+                            break;
                         }
 
-                        salida.writeInt(codigo);
-                        salida.writeInt(idUsuario);
-                        salida.flush();
+                        // ================= LOGOUT =================
+                        case "LOGOUT": {
+                            System.out.println("Cliente solicitó desconexión: " + conx.getRemoteSocketAddress());
+                            activo = false;
+                            break;
+                        }
 
-                        System.out.println(
-                            "Login procesado: usuario=" + usuario +
-                            " | codigo=" + codigo +
-                            " | idUsuario=" + idUsuario
-                        );
-                    }
+                        // ================= GET_PERFIL =================
+                        case "GET_PERFIL": {
+                            int idUsuario = entrada.readInt();
 
-                    // ================= LOGOUT =================
-                    else if (operacion.equalsIgnoreCase("LOGOUT")) {
-                        System.out.println("Cliente solicitó desconexión: " + conx.getRemoteSocketAddress());
-                        activo = false;
-                    }
+                            Users user = perfilService.getPerfil(idUsuario);
+                            String jsonResponse = (user != null) ? gson.toJson(user) : "";
 
-                    // ================= GET_PERFIL =================
-                    else if (operacion.equalsIgnoreCase("GET_PERFIL")) {
-                        int idUsuario = entrada.readInt();
+                            salida.writeUTF(jsonResponse);
+                            salida.flush();
 
-                        PerfilService perfilService = new PerfilService();
-                        Users user = perfilService.getPerfil(idUsuario);
+                            System.out.println("Perfil enviado para usuario: " + idUsuario);
+                            break;
+                        }
 
-                        String jsonResponse = (user != null) ? gson.toJson(user) : "";
+                        // ================= GET_ALUMNOS =================
+                        case "GET_ALUMNOS": {
+                            int idProfesor = entrada.readInt();
 
-                        salida.writeUTF(jsonResponse);
-                        salida.flush();
+                            List<Users> alumnos = alumnoService.getAlumnosDelProfesor(idProfesor);
+                            String jsonResponse = gson.toJson(alumnos);
 
-                        System.out.println("Perfil enviado para usuario: " + idUsuario);
-                    }
+                            salida.writeUTF(jsonResponse);
+                            salida.flush();
 
-                    // ================= GET_ALUMNOS =================
-                    else if (operacion.equalsIgnoreCase("GET_ALUMNOS")) {
-                        int idProfesor = entrada.readInt();
+                            System.out.println("Alumnos enviados para profesor: " + idProfesor);
+                            break;
+                        }
 
-                        AlumnoService alumnoService = new AlumnoService();
-                        List<Users> alumnos = alumnoService.getAlumnosDelProfesor(idProfesor);
+                        // ================= GET_HORARIO =================
+                 
+                        case "GET_HORARIO": {
+                            int idProfesor = entrada.readInt();
 
-                        String jsonResponse = gson.toJson(alumnos);
+                            List<Horarios> horarios = horarioService.obtenerHorarioProfesor(idProfesor);
+                            String jsonResponse = gson.toJson(horarios);
 
-                        salida.writeUTF(jsonResponse);
-                        salida.flush();
+                            // EXACTAMENTE IGUAL QUE GET_ALUMNOS
+                            salida.writeUTF(jsonResponse);
+                            salida.flush();
 
-                        System.out.println("Alumnos enviados para profesor: " + idProfesor);
-                    }
+                            System.out.println("Horario enviado para profesor: " + idProfesor);
+                            break;
+                        }
+                        
+                        case "GET_PROFESORES": {
+                            List<Users> profesores = alumnoService.getProfesores(); 
+                            String jsonResponse = gson.toJson(profesores);
 
-                    // ================= GET_HORARIO =================
-                    else if (operacion.equalsIgnoreCase("GET_HORARIO")) {
-                        int idProfesor = entrada.readInt();
+                            salida.writeUTF(jsonResponse);
+                            salida.flush();
 
-                        HorarioService horarioService = new HorarioService();
-                        List<Horarios> horarios = horarioService.obtenerHorarioProfesor(idProfesor);
+                            System.out.println("Profesores enviados");
+                            break;
+                        }
 
-                        String jsonResponse = gson.toJson(horarios);
 
-                        salida.writeUTF(jsonResponse);
-                        salida.flush();
+                        
 
-                        System.out.println("Horario enviado para profesor: " + idProfesor);
-                    }
-
-                    // ================= DESCONOCIDO =================
-                    else {
-                        System.out.println("Comando desconocido: " + operacion);
+                        // ================= DESCONOCIDO =================
+                        default:
+                            System.out.println("Comando desconocido: " + operacion);
+                            break;
                     }
 
                 } catch (Exception e) {
                     System.out.println("Error procesando comando: " + e.getMessage());
                     e.printStackTrace();
-                    System.out.println("Cliente desconectado: " + conx.getRemoteSocketAddress());
                     activo = false;
                 }
             }
@@ -159,4 +174,9 @@ public class HiloServidor extends Thread {
             }
         }
     }
+    
+
+
+    
+    
 }

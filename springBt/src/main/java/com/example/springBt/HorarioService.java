@@ -1,6 +1,7 @@
 package com.example.springBt;
 
 import modelo.Horarios;
+import modelo.Modulos;
 
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+
 @Service
 public class HorarioService {
 
@@ -25,20 +27,25 @@ public class HorarioService {
 
             for (Horarios h : resultado) {
 
-           
+                // Inicializar SIEMPRE el módulo
                 Hibernate.initialize(h.getModulos());
-                if (h.getModulos() != null) {
-                    Hibernate.initialize(h.getModulos().getCiclos());
-                }
+                Modulos m = h.getModulos();
 
+                if (m != null) {
+                    Hibernate.initialize(m.getId());
+                    Hibernate.initialize(m.getNombre());
+                    Hibernate.initialize(m.getNombreEus());
+                    Hibernate.initialize(m.getHoras());
+                    Hibernate.initialize(m.getCurso());
+                    Hibernate.initialize(m.getCiclos());
+
+                    m.setHorarioses(null);
+                    m.setCiclos(null);
+                }
 
                 h.setUsers(null);
-
-                if (h.getModulos() != null) {
-                    h.getModulos().setHorarioses(null);
-                    h.getModulos().setCiclos(null); // ← IMPORTANTE
-                }
             }
+
         }
 
         return resultado;
