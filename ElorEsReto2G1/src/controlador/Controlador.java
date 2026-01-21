@@ -149,25 +149,50 @@ public class Controlador {
 	}
 
 	public List<Horarios> obtenerHorario(int idProfesor) {
-		try {
-			salida.writeUTF("GET_HORARIO");
-			salida.writeInt(idProfesor);
-			salida.flush();
+	    try {
+	        // 1. Enviar comando
+	        salida.writeUTF("GET_HORARIO");
+	        salida.writeInt(idProfesor);
+	        salida.flush();
 
-			String jsonResponse = entrada.readUTF();
+	        // 2. Leer JSON COMO STRING
+	        String jsonResponse = entrada.readUTF();
 
-			if (jsonResponse != null && !jsonResponse.isEmpty()) {
-				Gson gson = new Gson();
-				Horarios[] horarioArray = gson.fromJson(jsonResponse, Horarios[].class);
-				return Arrays.asList(horarioArray);
-			}
+	        // 3. Convertir JSON
+	        Gson gson = new Gson();
+	        Horarios[] horarioArray = gson.fromJson(jsonResponse, Horarios[].class);
+	        System.out.println("JSON ENVIADO: " + jsonResponse);
 
-			return new ArrayList<>();
+	        return Arrays.asList(horarioArray);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ArrayList<>();
-		}
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return new ArrayList<>();
+	    }
 	}
+
+	public List<Users> obtenerProfesores() {
+	    try {
+	        // Enviar comando al servidor
+	        salida.writeUTF("GET_PROFESORES");
+	        salida.flush();
+
+	        // Recibir JSON
+	        String jsonResponse = entrada.readUTF();
+
+	        if (jsonResponse != null && !jsonResponse.isEmpty()) {
+	            Gson gson = new Gson();
+	            Users[] profesoresArray = gson.fromJson(jsonResponse, Users[].class);
+	            return Arrays.asList(profesoresArray);
+	        }
+
+	        return new ArrayList<>();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return new ArrayList<>();
+	    }
+	}
+
 
 	}

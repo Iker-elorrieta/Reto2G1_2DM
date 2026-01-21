@@ -26,14 +26,28 @@ public class Horario extends JFrame {
 
         // 6 horas x 5 días
         String[][] tabla = new String[6][5];
-
         for (Horarios h : horario) {
-            int hora = h.getHora() - 1; // hora 1 → índice 0
+            int hora = h.getHora() - 1;
             int col = diaAColumna(h.getDia());
-            if (col != -1 && hora >= 0 && hora < 6) {
-                tabla[hora][col] = h.getModulos().getNombre();
+
+            if (hora < 0 || hora >= 6 || col == -1) continue;
+
+            String texto = "";
+
+            if (h.getModulos() != null && h.getModulos().getNombre() != null) {
+                texto = h.getModulos().getNombre();
+            } else if (h.getObservaciones() != null) {
+                texto = h.getObservaciones();
+            } else if (h.getAula() != null && !h.getAula().equals("5.005")) {
+                texto = h.getAula();
             }
+
+
+            tabla[hora][col] = texto;
         }
+
+
+        
 
         JTable table = new JTable(tabla, dias);
         table.setRowHeight(60);

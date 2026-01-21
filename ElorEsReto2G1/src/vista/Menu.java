@@ -165,7 +165,7 @@ public class Menu extends JFrame {
         panelHorario.add(btnOtrosHorarios);
         btnOtrosHorarios.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	OtrsHorarios panelHorarios = new OtrsHorarios();
+            	OtrsHorarios panelHorarios = new OtrsHorarios(controlador,Menu.this);
             	panelHorarios.setVisible(true);
             	setVisible(false);
             	

@@ -34,7 +34,7 @@ public class Login extends JFrame {
 		@Override
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
-			Image img = new ImageIcon(getClass().getClassLoader().getResource("fondo.jpg")).getImage();
+			Image img = new ImageIcon(getClass().getClassLoader().getResource("fondo2.jpg")).getImage();
 			g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
 		}
 	};
