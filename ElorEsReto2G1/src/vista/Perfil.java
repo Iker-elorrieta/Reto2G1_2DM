@@ -12,24 +12,23 @@ import javax.swing.border.LineBorder;
 
 import modelo.Users;
 import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class Perfil extends JFrame {
 
     private static final long serialVersionUID = 1L;
+    private JButton btnVolver;
 
-    public Perfil(Users user,Menu menu) {
+    public Perfil(Users user) {
        
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 500, 750);
         setTitle("Perfil");
 
-        JPanel contentPane = new JPanel();
-        contentPane.setLayout(null);
-        contentPane.setBackground(new Color(245, 245, 245));
-        setContentPane(contentPane);
+        JPanel panelContenido = new JPanel();
+        panelContenido.setLayout(null);
+        panelContenido.setBackground(new Color(245, 245, 245));
+        setContentPane(panelContenido);
 
         // PANEL PRINCIPAL CON SOMBRA
         JPanel panel = new JPanel() {
@@ -46,59 +45,51 @@ public class Perfil extends JFrame {
         panel.setBounds(30, 30, 430, 620);
         panel.setLayout(null);
         panel.setOpaque(false);
-        contentPane.add(panel);
+        panelContenido.add(panel);
 
         // PANEL INTERIOR
-        JPanel panelInfo = new JPanel();
-        panelInfo.setBounds(0, 0, 430, 621);
-        panelInfo.setLayout(null);
-        panelInfo.setBackground(Color.WHITE);
-        panelInfo.setBorder(new LineBorder(new Color(200, 200, 200), 1, true));
-        panel.add(panelInfo);
+        JPanel panelInformacion = new JPanel();
+        panelInformacion.setBounds(0, 0, 430, 621);
+        panelInformacion.setLayout(null);
+        panelInformacion.setBackground(Color.WHITE);
+        panelInformacion.setBorder(new LineBorder(new Color(200, 200, 200), 1, true));
+        panel.add(panelInformacion);
 
         // CABECERA
         JLabel lblTitulo = new JLabel("Perfil del Profesor");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitulo.setBounds(20, 20, 300, 30);
-        panelInfo.add(lblTitulo);
+        panelInformacion.add(lblTitulo);
 
         JLabel lblSub = new JLabel(user.getNombre() + " " + user.getApellidos());
         lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         lblSub.setForeground(new Color(80, 80, 80));
         lblSub.setBounds(20, 55, 350, 25);
-        panelInfo.add(lblSub);
+        panelInformacion.add(lblSub);
 
         // SEPARADOR
-        JPanel separador = new JPanel();
-        separador.setBackground(new Color(200, 200, 200));
-        separador.setBounds(20, 90, 390, 1);
-        panelInfo.add(separador);
+        JPanel panelSeparador = new JPanel();
+        panelSeparador.setBackground(new Color(200, 200, 200));
+        panelSeparador.setBounds(20, 90, 390, 1);
+        panelInformacion.add(panelSeparador);
 
         // DATOS
-        int y = 120;
+        int posicionVertical = 120;
 
-        panelInfo.add(crearCampo("ID", String.valueOf(user.getId()), y)); y += 55;
-        panelInfo.add(crearCampo("Email", user.getEmail(), y)); y += 55;
-        panelInfo.add(crearCampo("Usuario", user.getUsername(), y)); y += 55;
-        panelInfo.add(crearCampo("Nombre", user.getNombre(), y)); y += 55;
-        panelInfo.add(crearCampo("Apellidos", user.getApellidos(), y)); y += 55;
-        panelInfo.add(crearCampo("DNI", user.getDni(), y)); y += 55;
-        panelInfo.add(crearCampo("Dirección", user.getDireccion(), y)); y += 55;
-        panelInfo.add(crearCampo("Teléfono 1", user.getTelefono1(), y)); y += 55;
-        panelInfo.add(crearCampo("Teléfono 2", user.getTelefono2(), y)); 
+        panelInformacion.add(crearCampo("ID", String.valueOf(user.getId()), posicionVertical)); posicionVertical += 55;
+        panelInformacion.add(crearCampo("Email", user.getEmail(), posicionVertical)); posicionVertical += 55;
+        panelInformacion.add(crearCampo("Usuario", user.getUsername(), posicionVertical)); posicionVertical += 55;
+        panelInformacion.add(crearCampo("Nombre", user.getNombre(), posicionVertical)); posicionVertical += 55;
+        panelInformacion.add(crearCampo("Apellidos", user.getApellidos(), posicionVertical)); posicionVertical += 55;
+        panelInformacion.add(crearCampo("DNI", user.getDni(), posicionVertical)); posicionVertical += 55;
+        panelInformacion.add(crearCampo("Dirección", user.getDireccion(), posicionVertical)); posicionVertical += 55;
+        panelInformacion.add(crearCampo("Teléfono 1", user.getTelefono1(), posicionVertical)); posicionVertical += 55;
+        panelInformacion.add(crearCampo("Teléfono 2", user.getTelefono2(), posicionVertical)); 
         
-        JButton btnVolver = new JButton("<-- Volver");
+        btnVolver = new JButton("<-- Volver");
         btnVolver.setBackground(Color.WHITE);
-        btnVolver.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-            menu.setVisible(true);
-        	setVisible(false);
-   
-        		
-        	}
-        });
         btnVolver.setBounds(30, 665, 430, 35);
-        contentPane.add(btnVolver);y += 55;
+        panelContenido.add(btnVolver);
         
       
     }
@@ -121,5 +112,13 @@ public class Perfil extends JFrame {
         campo.add(lblValor);
 
         return campo;
+    }
+
+    public JButton getBtnVolver() {
+        return btnVolver;
+    }
+
+    public void setBtnVolver(JButton btnVolver) {
+        this.btnVolver = btnVolver;
     }
 }

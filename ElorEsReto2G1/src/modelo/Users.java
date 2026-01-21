@@ -1,17 +1,16 @@
 package modelo;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import com.google.gson.Gson;
 
-
-public class Users implements java.io.Serializable {
-
-    /**
-	 * 
-	 */
-	
+public class Users implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private Integer id;
     private Tipos tipos;
@@ -28,10 +27,6 @@ public class Users implements java.io.Serializable {
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
-    private Set<Matriculaciones> matriculaciones = new HashSet<>();
-    private Set<Reuniones> reunionesForAlumno = new HashSet<>();
-    private Set<Reuniones> reunionesForProfesor = new HashSet<>();
-    private Set<Horarios> horarios = new HashSet<>();
 
     public Users() {}
 
@@ -46,11 +41,8 @@ public class Users implements java.io.Serializable {
         Tipos tipos, String email, String username, String password,
         String nombre, String apellidos, String dni, String direccion,
         String telefono1, String telefono2, String argazkiaUrl,
-        Timestamp createdAt, Timestamp updatedAt,
-        Set<Matriculaciones> matriculaciones,
-        Set<Reuniones> reunionesForAlumno,
-        Set<Horarios> horarios,
-        Set<Reuniones> reunionesForProfesor
+        Timestamp createdAt, Timestamp updatedAt
+
     ) {
         this.tipos = tipos;
         this.email = email;
@@ -65,10 +57,6 @@ public class Users implements java.io.Serializable {
         this.argazkiaUrl = argazkiaUrl;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.matriculaciones = matriculaciones;
-        this.reunionesForAlumno = reunionesForAlumno;
-        this.horarios = horarios;
-        this.reunionesForProfesor = reunionesForProfesor;
     }
 
     public Integer getId() {
@@ -183,35 +171,67 @@ public class Users implements java.io.Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public Set<Matriculaciones> getMatriculaciones() {
-        return matriculaciones;
+    public static Users obtenerPerfil(DataInputStream entrada, DataOutputStream salida, int idUsuario) {
+        try {
+            salida.writeUTF("GET_PERFIL");
+            salida.writeInt(idUsuario);
+            salida.flush();
+
+            String jsonResponse = entrada.readUTF();
+
+            if (jsonResponse != null && !jsonResponse.isEmpty()) {
+                Gson gson = new Gson();
+                return gson.fromJson(jsonResponse, Users.class);
+            }
+
+            return null;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    public void setMatriculaciones(Set<Matriculaciones> matriculaciones) {
-        this.matriculaciones = matriculaciones;
+    public static List<Users> obtenerAlumnos(DataInputStream entrada, DataOutputStream salida, int idProfesor) {
+        try {
+            salida.writeUTF("GET_ALUMNOS");
+            salida.writeInt(idProfesor);
+            salida.flush();
+
+            String jsonResponse = entrada.readUTF();
+
+            if (jsonResponse != null && !jsonResponse.isEmpty()) {
+                Gson gson = new Gson();
+                Users[] alumnosArray = gson.fromJson(jsonResponse, Users[].class);
+                return Arrays.asList(alumnosArray);
+            }
+
+            return new ArrayList<>();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 
-    public Set<Reuniones> getReunionesForAlumno() {
-        return reunionesForAlumno;
-    }
+    public static List<Users> obtenerProfesores(DataInputStream entrada, DataOutputStream salida) {
+        try {
+            salida.writeUTF("GET_PROFESORES");
+            salida.flush();
 
-    public void setReunionesForAlumno(Set<Reuniones> reunionesForAlumno) {
-        this.reunionesForAlumno = reunionesForAlumno;
-    }
+            String jsonResponse = entrada.readUTF();
 
-    public Set<Reuniones> getReunionesForProfesor() {
-        return reunionesForProfesor;
-    }
+            if (jsonResponse != null && !jsonResponse.isEmpty()) {
+                Gson gson = new Gson();
+                Users[] profesoresArray = gson.fromJson(jsonResponse, Users[].class);
+                return Arrays.asList(profesoresArray);
+            }
 
-    public void setReunionesForProfesor(Set<Reuniones> reunionesForProfesor) {
-        this.reunionesForProfesor = reunionesForProfesor;
-    }
+            return new ArrayList<>();
 
-    public Set<Horarios> getHorarios() {
-        return horarios;
-    }
-
-    public void setHorarios(Set<Horarios> horarios) {
-        this.horarios = horarios;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 }
