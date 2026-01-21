@@ -27,7 +27,13 @@ public class AlumnoService {
             .getResultList();
 
             for (Users u : alumnos) {
-            	Hibernate.initialize(u.getTipos());
+                // Inicializar tipos y limpiar sus colecciones
+                if (u.getTipos() != null) {
+                    Hibernate.initialize(u.getTipos());
+                    u.getTipos().setUserses(null);
+                }
+                
+                // Limpiar colecciones del usuario
                 u.setMatriculacioneses(null);
                 u.setReunionesesForAlumnoId(null);
                 u.setReunionesesForProfesorId(null);

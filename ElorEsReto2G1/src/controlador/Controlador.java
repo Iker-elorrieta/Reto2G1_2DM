@@ -1,12 +1,8 @@
 package controlador;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.Socket;
-import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -94,21 +90,18 @@ public class Controlador {
 
 	public Users obtenerPerfil(int idUsuario) {
 		try {
-			URI uri = URI.create("http://localhost:8080/api/perfil/" + idUsuario);
-			HttpURLConnection con = (HttpURLConnection) uri.toURL().openConnection();
-			con.setRequestMethod("GET");
+			salida.writeUTF("GET_PERFIL");
+			salida.writeInt(idUsuario);
+			salida.flush();
 
-			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			StringBuilder response = new StringBuilder();
-			String line;
+			String jsonResponse = entrada.readUTF();
 
-			while ((line = in.readLine()) != null) {
-				response.append(line);
+			if (jsonResponse != null && !jsonResponse.isEmpty()) {
+				Gson gson = new Gson();
+				return gson.fromJson(jsonResponse, Users.class);
 			}
-			in.close();
 
-			Gson gson = new Gson();
-			return gson.fromJson(response.toString(), Users.class);
+			return null;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -134,56 +127,47 @@ public class Controlador {
     }
 
 	public List<Users> obtenerAlumnos(int idProfesor) {
-		
-		    try {
-		        URI uri = URI.create("http://localhost:8080/api/profesor/" + idProfesor + "/alumnos");
-		        HttpURLConnection con = (HttpURLConnection) uri.toURL().openConnection();
-		        con.setRequestMethod("GET");
+		try {
+			salida.writeUTF("GET_ALUMNOS");
+			salida.writeInt(idProfesor);
+			salida.flush();
 
-		        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		        StringBuilder response = new StringBuilder();
-		        String line;
+			String jsonResponse = entrada.readUTF();
 
-		        while ((line = in.readLine()) != null) {
-		            response.append(line);
-		        }
-		        in.close();
+			if (jsonResponse != null && !jsonResponse.isEmpty()) {
+				Gson gson = new Gson();
+				Users[] alumnosArray = gson.fromJson(jsonResponse, Users[].class);
+				return Arrays.asList(alumnosArray);
+			}
 
-		        Gson gson = new Gson();
-		        Users[] alumnosArray = gson.fromJson(response.toString(), Users[].class);
+			return new ArrayList<>();
 
-		        return Arrays.asList(alumnosArray);
-
-		    } catch (Exception e) {
-		        e.printStackTrace();
-		        return new ArrayList<>();
-		    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ArrayList<>();
 		}
+	}
 
 	public List<Horarios> obtenerHorario(int idProfesor) {
-	    try {
-	        URI uri = URI.create("http://localhost:8080/api/horario/" + idProfesor);
-	        HttpURLConnection con = (HttpURLConnection) uri.toURL().openConnection();
-	        con.setRequestMethod("GET");
+		try {
+			salida.writeUTF("GET_HORARIO");
+			salida.writeInt(idProfesor);
+			salida.flush();
 
-	        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-	        StringBuilder response = new StringBuilder();
-	        String line;
+			String jsonResponse = entrada.readUTF();
 
-	        while ((line = in.readLine()) != null) {
-	            response.append(line);
-	        }
-	        in.close();
+			if (jsonResponse != null && !jsonResponse.isEmpty()) {
+				Gson gson = new Gson();
+				Horarios[] horarioArray = gson.fromJson(jsonResponse, Horarios[].class);
+				return Arrays.asList(horarioArray);
+			}
 
-	        Gson gson = new Gson();
-	        Horarios[] horarioArray = gson.fromJson(response.toString(), Horarios[].class);
+			return new ArrayList<>();
 
-	        return Arrays.asList(horarioArray);
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return new ArrayList<>();
-	    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ArrayList<>();
+		}
 	}
 
 	}

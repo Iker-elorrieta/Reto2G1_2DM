@@ -14,9 +14,7 @@ public class Alumnos extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private Menu menu;
 	public Alumnos(Controlador controlador, int idProfesor, Menu menu) {
-		this.menu=menu;
         setTitle("Lista de Alumnos");
         setSize(500, 600);
         setLocationRelativeTo(null);

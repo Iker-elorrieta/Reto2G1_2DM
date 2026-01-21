@@ -18,25 +18,26 @@ public class Login extends JFrame {
 	private JTextField txtUsu;
 	private JPasswordField txtCntr;
 	private Controlador cntrldr;
-	private Socket socket;
 
 	public Login(Socket socket) {
-		this.socket = socket;
 		this.cntrldr = new Controlador(socket);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(800, 450);
 		setLocationRelativeTo(null);
 		setResizable(false);
 
-		// PANEL PRINCIPAL CON IMAGEN DE FONDO
-		contentPane = new JPanel() {
-			@Override
-			protected void paintComponent(Graphics g) {
-				super.paintComponent(g);
-				Image img = Toolkit.getDefaultToolkit().getImage("fondo.jpg");
-				g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
-			}
-		};
+	// PANEL PRINCIPAL CON IMAGEN DE FONDO
+	contentPane = new JPanel() {
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			Image img = new ImageIcon(getClass().getClassLoader().getResource("fondo.jpg")).getImage();
+			g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
+		}
+	};
 		contentPane.setLayout(null);
 		setContentPane(contentPane);
 
@@ -72,12 +73,12 @@ public class Login extends JFrame {
 		lblCntr.setBounds(30, 150, 240, 20);
 		blurPanel.add(lblCntr);
 
-		JButton btnVer = new JButton("");
-		btnVer.setBounds(242, 176, 28, 27);
-		blurPanel.add(btnVer);
-		btnVer.setFocusable(false);
-		btnVer.setBorderPainted(false);
-		btnVer.setIcon(new ImageIcon("ojo.jpg"));
+	JButton btnVer = new JButton("");
+	btnVer.setBounds(242, 176, 28, 27);
+	blurPanel.add(btnVer);
+	btnVer.setFocusable(false);
+	btnVer.setBorderPainted(false);
+	btnVer.setIcon(new ImageIcon(getClass().getClassLoader().getResource("ojo.jpg")));
 
 		// BOTÓN LOGIN
 		JButton btnLogin = new JButton("Entrar");
@@ -91,17 +92,15 @@ public class Login extends JFrame {
 					String usu = txtUsu.getText();
 					String cntr = new String(txtCntr.getPassword());
 
-					int codigo = cntrldr.verificarLogin(usu, cntr);
+					int codigo = cntrldr.verificarLogin(usu, cntr);				if (codigo == 1) {
+					int idUsuario = cntrldr.getUsuarioId();
+					JOptionPane.showMessageDialog(null, "Login Correcto", "Acceso Permitido",
+							JOptionPane.INFORMATION_MESSAGE);
+					Menu menu = new Menu(cntrldr, idUsuario);
+					menu.setVisible(true);
+					dispose(); // Cerrar Login completamente
 
-					if (codigo == 1) {
-						int idUsuario = cntrldr.getUsuarioId();
-						JOptionPane.showMessageDialog(null, "Login Correcto", "Acceso Permitido",
-								JOptionPane.INFORMATION_MESSAGE);
-						Menu menu = new Menu(socket, idUsuario);
-						menu.setVisible(true);
-						setVisible(false);
-
-					} else if (codigo == 2) {
+				} else if (codigo == 2) {
 						JOptionPane.showMessageDialog(null,"Solo los profesores pueden iniciar sesión","Acceso denegado",JOptionPane.WARNING_MESSAGE);
 					} else {
 						JOptionPane.showMessageDialog(null, "Usuario o contraseña incorrectos", "Acceso Denegado",

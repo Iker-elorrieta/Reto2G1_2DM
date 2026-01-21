@@ -12,7 +12,6 @@ public class PerfilService {
 	@GetMapping("/perfil/{id}")
 	public Users getPerfil(@PathVariable(name = "id") int id) {
 
-
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
             Users user = session.get(Users.class, id);
@@ -21,9 +20,14 @@ public class PerfilService {
                 return null;
             }
 
-            Hibernate.initialize(user.getTipos());
+            // Inicializar la relación de tipos
+            if (user.getTipos() != null) {
+                Hibernate.initialize(user.getTipos());
+                // Limpiar colecciones del tipo para evitar proxies
+                user.getTipos().setUserses(null);
+            }
 
-            // Evitar errores de serialización
+            // Evitar errores de serialización eliminando todas las colecciones lazy
             user.setMatriculacioneses(null);
             user.setReunionesesForAlumnoId(null);
             user.setReunionesesForProfesorId(null);

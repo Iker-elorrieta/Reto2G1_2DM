@@ -15,12 +15,13 @@ public class Menu extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
-    private Controlador controlador ;
-    
+    @SuppressWarnings("unused")
+    private Controlador controlador;
+    @SuppressWarnings("unused")
     private int idUsuario;
 
-    public Menu(Socket socket, int idUsuario) {
-    	this.controlador = new Controlador(socket); 
+    public Menu(Controlador controlador, int idUsuario) {
+    	this.controlador = controlador;
     	this.idUsuario = idUsuario;
     	
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -79,7 +80,7 @@ public class Menu extends JFrame {
         
         lblelo.setBounds(0, 0, 220, 96);
         panelIzq.add(lblelo);
-        lblelo.setIcon(new ImageIcon("logoelo.png"));
+        lblelo.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelo.png")));
         
                 JLabel lblPerfil = new JLabel("Perfil");
                 lblPerfil.setBounds(10, 80, 180, 25);
@@ -101,14 +102,23 @@ public class Menu extends JFrame {
                         );
 
                         if (opcion == JOptionPane.YES_OPTION) {
-
-                         
+                            // Desconectar y cerrar socket
                             controlador.desconectar();
 
-                           
-                            Login login = new Login(socket);
-                            login.setVisible(true);
-                            dispose();
+                            // Crear nueva conexión al servidor
+                            try {
+                                Socket nuevoSocket = new Socket("localhost", 5000);
+                                Login login = new Login(nuevoSocket);
+                                login.setVisible(true);
+                                dispose();
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(null, "No se pudo conectar al servidor", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                                // Si no puede conectar, volver a inicio
+                                InicioCliente inicio = new InicioCliente();
+                                inicio.setVisible(true);
+                                dispose();
+                            }
                         }
                     }
                 });
@@ -199,6 +209,6 @@ public class Menu extends JFrame {
         JLabel lblbanner = new JLabel("");
         lblbanner.setBounds(260, 28, 480, 68);
         contentPane.add(lblbanner);
-        lblbanner.setIcon(new ImageIcon("logoelorrieta.jpg"));
+        lblbanner.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelorrieta.jpg")));
     }
 }

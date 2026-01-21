@@ -10,10 +10,9 @@ import controlador.Controlador;
 import modelo.Horarios;
 
 public class Horario extends JFrame {
-	private Menu menu;
+	private static final long serialVersionUID = 1L;
 
-    public Horario(Controlador controlador, int idProfesor, Menu menu) {
-    	this.menu=menu;
+	public Horario(Controlador controlador, int idProfesor, Menu menu) {
 
         setTitle("Horario del Profesor");
         setSize(900, 600);

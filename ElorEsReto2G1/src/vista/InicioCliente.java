@@ -20,10 +20,13 @@ public class InicioCliente extends JFrame {
 
 		// PANEL CON IMAGEN DE FONDO
 		panelFondo = new JPanel() {
+		
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				Image img = new ImageIcon("main/media/fondo2.jpg").getImage();
+				Image img = new ImageIcon(getClass().getClassLoader().getResource("fondo2.jpg")).getImage();
 				g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
 			}
 		};
@@ -34,7 +37,7 @@ public class InicioCliente extends JFrame {
 		lbllogo = new JLabel();
 		lbllogo.setBounds(145, 122, 361, 210);
 		panelFondo.add(lbllogo);
-		lbllogo.setIcon(new ImageIcon("logoelo.png"));
+		lbllogo.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelo.png")));
 
 		// EVENTO CLICK EN TODA LA PANTALLA
 		panelFondo.addMouseListener(new MouseAdapter() {

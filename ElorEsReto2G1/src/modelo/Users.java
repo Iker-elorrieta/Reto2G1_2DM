@@ -3,12 +3,9 @@ package modelo;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.*;
 
 
 
-@Entity
-@Table(name = "users")
 public class Users implements java.io.Serializable {
 
     /**

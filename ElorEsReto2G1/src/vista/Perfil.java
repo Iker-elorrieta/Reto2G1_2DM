@@ -18,12 +18,9 @@ import java.awt.event.ActionEvent;
 public class Perfil extends JFrame {
 
     private static final long serialVersionUID = 1L;
-    private Users user;
-    private Menu menu ;
 
     public Perfil(Users user,Menu menu) {
-        this.user = user;
-        this.menu= menu;
+       
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 500, 750);
@@ -36,7 +33,10 @@ public class Perfil extends JFrame {
 
         // PANEL PRINCIPAL CON SOMBRA
         JPanel panel = new JPanel() {
-            @Override
+ 
+			private static final long serialVersionUID = 1L;
+
+			@Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 ((Graphics) g).setColor(new Color(220, 220, 220));
