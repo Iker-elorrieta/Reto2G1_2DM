@@ -1,7 +1,7 @@
 package com.example.springBt;
 
 import modelo.Horarios;
-import modelo.Modulos;
+
 
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -13,41 +13,27 @@ import java.util.List;
 @Service
 public class HorarioService {
 
-    public List<Horarios> obtenerHorarioProfesor(Integer idProfesor) {
+	public List<Horarios> obtenerHorarioProfesor(Integer idProfesor) {
+	    List<Horarios> resultado = new ArrayList<>();
 
-        List<Horarios> resultado = new ArrayList<>();
+	    try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+	        List<Horarios> lista = session.createQuery(
+	            "SELECT h FROM Horarios h WHERE h.users.id = :idProfesor ORDER BY h.dia, h.hora",
+	            Horarios.class)
+	        .setParameter("idProfesor", idProfesor)
+	        .getResultList();
 
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+	        for (Horarios h : lista) {
+	            Hibernate.initialize(h.getModulos());
+	            if (h.getModulos() != null) {
+	                h.setNombreModulo(h.getModulos().getNombre());
+	            }
+	            resultado.add(h); 
+	        }
 
-            resultado = session.createQuery(
-                    "SELECT h FROM Horarios h WHERE h.users.id = :idProfesor ORDER BY h.dia, h.hora",
-                    Horarios.class)
-            .setParameter("idProfesor", idProfesor)
-            .getResultList();
+	    }
 
-            for (Horarios h : resultado) {
+	    return resultado;
+	}
 
-                // Inicializar SIEMPRE el módulo
-                Hibernate.initialize(h.getModulos());
-                Modulos m = h.getModulos();
-
-                if (m != null) {
-                    Hibernate.initialize(m.getId());
-                    Hibernate.initialize(m.getNombre());
-                    Hibernate.initialize(m.getNombreEus());
-                    Hibernate.initialize(m.getHoras());
-                    Hibernate.initialize(m.getCurso());
-                    Hibernate.initialize(m.getCiclos());
-
-                    m.setHorarioses(null);
-                    m.setCiclos(null);
-                }
-
-                h.setUsers(null);
-            }
-
-        }
-
-        return resultado;
-    }
 }
