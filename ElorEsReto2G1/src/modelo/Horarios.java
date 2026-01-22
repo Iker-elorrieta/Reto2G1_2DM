@@ -20,6 +20,7 @@ public class Horarios implements Serializable {
 	private String observaciones;
 	private Timestamp createdAt;
 	private Timestamp updatedAt;
+	private String nombreModulo;
 
 	public Horarios() {
 	}
@@ -131,5 +132,13 @@ public class Horarios implements Serializable {
 	        e.printStackTrace();
 	        return new ArrayList<>();
 	    }
+	}
+
+	public String getNombreModulo() {
+		return nombreModulo;
+	}
+
+	public void setNombreModulo(String nombreModulo) {
+		this.nombreModulo = nombreModulo;
 	}
 }

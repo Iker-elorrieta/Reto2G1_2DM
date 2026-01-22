@@ -17,6 +17,7 @@ public class InicioCliente extends JFrame {
 
 	public InicioCliente() {
 		setTitle("Inicio Cliente");
+		
 		setSize(800, 450);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

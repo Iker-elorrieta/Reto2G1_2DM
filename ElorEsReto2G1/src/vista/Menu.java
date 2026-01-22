@@ -30,42 +30,40 @@ public class Menu extends JFrame {
         setBounds(100, 100, 780, 541);
         setTitle("Menú Principal");
 
-        panelContenido = new JPanel();
+        panelContenido = new PanelConFondo("fondo2.jpg");
         panelContenido.setBackground(new Color(245, 245, 245));
         panelContenido.setLayout(null);
         setContentPane(panelContenido);
+        
+        
 
         // ===== PANEL IZQUIERDO =====
         JPanel panelIzquierdo = new JPanel();
-        panelIzquierdo.setBounds(30, 28, 220, 438);
+        panelIzquierdo.setBounds(544, 0, 220, 502);
         panelIzquierdo.setLayout(null);
-        panelIzquierdo.setBackground(Color.WHITE);
+        panelIzquierdo.setBackground(Color.LIGHT_GRAY);
         panelIzquierdo.setBorder(new LineBorder(new Color(200, 200, 200), 1, true));
         panelContenido.add(panelIzquierdo);
 
-        btnPerfil = new JButton("⚙  Consultar Perfil");
-
+        btnPerfil = new JButton("⚙");
+        btnPerfil.setBackground(Color.WHITE);
         btnPerfil.setBounds(20, 114, 180, 76);
         btnPerfil.setFocusPainted(false);
         panelIzquierdo.add(btnPerfil);
 
         btnAlumnos = new JButton("👤  Consultar Alumnos");
+        btnAlumnos.setBackground(Color.WHITE);
         btnAlumnos.setBounds(20, 201, 180, 145);
         btnAlumnos.setFocusPainted(false);
         panelIzquierdo.add(btnAlumnos);
         
-        JLabel etiquetaLogoSuperior = new JLabel("");
-
-        etiquetaLogoSuperior.setBounds(0, 0, 220, 96);
-        panelIzquierdo.add(etiquetaLogoSuperior);
-        etiquetaLogoSuperior.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelo.png")));
-        
-                JLabel etiquetaPerfil = new JLabel("Perfil");
-                etiquetaPerfil.setBounds(10, 80, 180, 25);
+                JLabel etiquetaPerfil = new JLabel("PERFIL");
+                etiquetaPerfil.setBounds(10, 11, 180, 25);
                 panelIzquierdo.add(etiquetaPerfil);
                 etiquetaPerfil.setFont(new Font("Segoe UI", Font.BOLD, 16));
                 
                 btnDesc = new JButton("Desconectar");
+                btnDesc.setBackground(Color.WHITE);
                 btnDesc.setFocusPainted(false);
                 btnDesc.setBounds(20, 371, 180, 56);
                 panelIzquierdo.add(btnDesc);
@@ -74,7 +72,8 @@ public class Menu extends JFrame {
 
         // ===== PANEL DERECHO =====
         JPanel panelDerecho = new JPanel();
-        panelDerecho.setBounds(260, 107, 480, 384);
+        panelDerecho.setForeground(new Color(255, 255, 255));
+        panelDerecho.setBounds(33, 107, 480, 384);
         panelDerecho.setLayout(null);
         panelDerecho.setBackground(new Color(245, 245, 245));
         panelContenido.add(panelDerecho);
@@ -95,10 +94,12 @@ public class Menu extends JFrame {
 
         btnConsultarHorario = new JButton("Consultar horario");
         btnConsultarHorario.setBounds(40, 31, 180, 138);
+        btnConsultarHorario.setBackground(Color.WHITE);
         panelHorario.add(btnConsultarHorario);
         
 
         btnOtrosHorarios = new JButton("Consultar otros horarios");
+        btnOtrosHorarios.setBackground(Color.WHITE);
         btnOtrosHorarios.setBounds(243, 31, 202, 138);
         panelHorario.add(btnOtrosHorarios);
 
@@ -117,19 +118,19 @@ public class Menu extends JFrame {
         panelDerecho.add(panelReuniones);
 
         btnCrearReunion = new JButton("Crear reunión");
+        btnCrearReunion.setBackground(Color.WHITE);
         btnCrearReunion.setBounds(40, 29, 180, 140);
         panelReuniones.add(btnCrearReunion);
 
         btnVerReuniones = new JButton("Ver reuniones");
+        btnVerReuniones.setBackground(Color.WHITE);
         btnVerReuniones.setBounds(242, 29, 209, 140);
         panelReuniones.add(btnVerReuniones);
-    
-            
         
-        JLabel etiquetaBanner = new JLabel("");
-        etiquetaBanner.setBounds(260, 28, 480, 68);
-        panelContenido.add(etiquetaBanner);
-        etiquetaBanner.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelorrieta.jpg")));
+        JLabel etiquetaLogoSuperior = new JLabel("");
+        etiquetaLogoSuperior.setBounds(260, 11, 237, 96);
+        panelContenido.add(etiquetaLogoSuperior);
+        etiquetaLogoSuperior.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelo.png")));
     }
 
     public boolean confirmarCierreSesion() {

@@ -94,7 +94,7 @@ public class Login extends JFrame {
 		botonVer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evento) {
 				contrasenaVisible = !contrasenaVisible;
-				campoContrasena.setEchoChar(contrasenaVisible ? (char) 0 : '•');
+				campoContrasena.setEchoChar(contrasenaVisible ? (char) 0 : '◉' );
 			}
 		});
 

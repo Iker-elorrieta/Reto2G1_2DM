@@ -23,7 +23,6 @@ public class Horario extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        
         String[] dias = {"LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"};
 
         // 6 horas x 5 días
@@ -37,21 +36,22 @@ public class Horario extends JFrame {
             }
 
             String textoCelda = "";
-
-            if (bloqueHorario.getModulos() != null && bloqueHorario.getModulos().getNombre() != null) {
-                textoCelda = bloqueHorario.getModulos().getNombre();
+            if (bloqueHorario.getNombreModulo() != null) {
+                textoCelda = bloqueHorario.getNombreModulo();
             } else if (bloqueHorario.getObservaciones() != null) {
                 textoCelda = bloqueHorario.getObservaciones();
-            } else if (bloqueHorario.getAula() != null && !bloqueHorario.getAula().equals("5.005")) {
+            } else if (bloqueHorario.getAula() != null) {
                 textoCelda = bloqueHorario.getAula();
+            }
+
+
+            if (textoCelda.isEmpty()) {
+                textoCelda = "Libre";
             }
 
 
             tablaHorario[hora][columna] = textoCelda;
         }
-
-
-        
 
         JTable tablaVisual = new JTable(tablaHorario, dias);
         tablaVisual.setRowHeight(60);

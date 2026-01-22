@@ -14,6 +14,7 @@ import javax.swing.JOptionPane;
 import modelo.Horarios;
 import modelo.Users;
 import vista.Alumnos;
+import vista.CrearReuiniones;
 import vista.Horario;
 import vista.InicioCliente;
 import vista.Login;
@@ -112,13 +113,60 @@ public class Controlador {
         vistaMenu.getBtnAlumnos().addActionListener(evento -> mostrarAlumnos());
         vistaMenu.getBtnConsultarHorario().addActionListener(evento -> mostrarHorarioPropio());
         vistaMenu.getBtnOtrosHorarios().addActionListener(evento -> mostrarOtrosHorarios());
-        vistaMenu.getBtnCrearReunion().addActionListener(evento -> mostrarFuncionalidadEnConstruccion());
+        vistaMenu.getBtnCrearReunion().addActionListener(evento -> crearReuniones());
         vistaMenu.getBtnVerReuniones().addActionListener(evento -> mostrarReuniones());
         vistaMenu.getBtnDesc().addActionListener(evento -> manejarCierreSesion());
         vistaMenu.setVisible(true);
     }
 
-    private void mostrarPerfilPropio() {
+    private void crearReuniones() {
+        List<Users> alumnos = Users.obtenerAlumnos(entradaDatos, salidaDatos, idUsuario);
+        if (alumnos == null || alumnos.isEmpty()) {
+            vistaMenu.mostrarMensajeError("No se encontraron alumnos para crear reuniones.");
+            return;
+        }
+
+        Users profesor = Users.obtenerPerfil(entradaDatos, salidaDatos, idUsuario);
+        if (profesor == null) {
+            vistaMenu.mostrarMensajeError("No se pudo obtener el perfil del profesor.");
+            return;
+        }
+
+        CrearReuiniones vistaCrear = new CrearReuiniones(alumnos);
+        vistaCrear.getBtnVolver().addActionListener(e -> {
+            vistaCrear.dispose();
+            vistaMenu.setVisible(true);
+        });
+
+        vistaCrear.getBtnCrear().addActionListener(e -> {
+            modelo.Reuniones reunion = vistaCrear.construirReunion(profesor);
+            if (reunion == null) return; // Error en fecha
+
+            try {
+                salidaDatos.writeUTF("CREAR_REUNION");
+                salidaDatos.writeUTF(new com.google.gson.Gson().toJson(reunion));
+                salidaDatos.flush();
+
+                boolean confirmacion = entradaDatos.readBoolean();
+                if (confirmacion) {
+                    JOptionPane.showMessageDialog(vistaCrear, "Reunión creada correctamente.");
+                    vistaCrear.dispose();
+                    vistaMenu.setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(vistaCrear, "Error al crear la reunión.");
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(vistaCrear, "Error de comunicación con el servidor.");
+            }
+        });
+
+        vistaMenu.setVisible(false);
+        vistaCrear.setVisible(true);
+    }
+
+
+	private void mostrarPerfilPropio() {
         Users usuario = Users.obtenerPerfil(entradaDatos, salidaDatos, idUsuario);
         if (usuario == null) {
             vistaMenu.mostrarMensajeError("No se pudo obtener el perfil del usuario.");
@@ -226,10 +274,7 @@ public class Controlador {
         vistaHorario.setVisible(true);
     }
 
-    private void mostrarFuncionalidadEnConstruccion() {
-        vistaMenu.mostrarMensajeError("Funcionalidad en desarrollo.");
-    }
-
+   
     private void mostrarReuniones() {
         VerReuniones vistaReuniones = new VerReuniones();
         vistaReuniones.setVisible(true);
