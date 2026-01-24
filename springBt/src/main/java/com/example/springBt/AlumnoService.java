@@ -48,8 +48,8 @@ public class AlumnoService {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
             List<Users> profesores = session.createQuery(
-                    "FROM Users WHERE tipos.id = 3", Users.class
-            ).list();
+                    "FROM Users WHERE tipos.name = 'profesor'", Users.class
+            ).getResultList();
 
             for (Users u : profesores) {
 
