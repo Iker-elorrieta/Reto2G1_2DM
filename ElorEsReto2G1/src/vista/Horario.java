@@ -1,79 +1,82 @@
 package vista;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 import java.util.List;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel; 
 
-import controlador.Controlador;
 import modelo.Horarios;
 
 public class Horario extends JFrame {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    private JButton botonVolver;
 
-	public Horario(Controlador controlador, int idProfesor, Menu menu) {
-
-        setTitle("Horario del Profesor");
+    public Horario(List<Horarios> listaHorario, String tituloVentana) {
+        setTitle(tituloVentana);
         setSize(900, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        List<Horarios> horario = controlador.obtenerHorario(idProfesor);
-
-        
         String[] dias = {"LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"};
+        String[][] tablaHorario = new String[6][5];
 
-        // 6 horas x 5 días
-        String[][] tabla = new String[6][5];
-        for (Horarios h : horario) {
-            int hora = h.getHora() - 1;
-            int col = diaAColumna(h.getDia());
+        for (Horarios bloqueHorario : listaHorario) {
+            int hora = bloqueHorario.getHora() - 1;
+            int columna = diaAColumna(bloqueHorario.getDia());
 
-            if (hora < 0 || hora >= 6 || col == -1) continue;
+            if (hora < 0 || hora >= 6 || columna == -1) continue;
 
-            String texto = "";
-
-            if (h.getModulos() != null && h.getModulos().getNombre() != null) {
-                texto = h.getModulos().getNombre();
-            } else if (h.getObservaciones() != null) {
-                texto = h.getObservaciones();
-            } else if (h.getAula() != null && !h.getAula().equals("5.005")) {
-                texto = h.getAula();
+            String textoCelda = "";
+            if (bloqueHorario.getNombreModulo() != null) {
+                textoCelda = bloqueHorario.getNombreModulo();
+            } else if (bloqueHorario.getObservaciones() != null) {
+                textoCelda = bloqueHorario.getObservaciones();
+            } else if (bloqueHorario.getAula() != null) {
+                textoCelda = bloqueHorario.getAula();
             }
 
+            if (textoCelda.isEmpty()) {
+                textoCelda = "Libre";
+            }
 
-            tabla[hora][col] = texto;
+          //Un poco de html para que se vea el texto completo
+            tablaHorario[hora][columna] = "<html><body style='width: 100px; text-align: center;'>" + textoCelda + "</body></html>";
         }
 
+        // 1. CREAR MODELO NO EDITABLE
+        DefaultTableModel modeloTabla = new DefaultTableModel(tablaHorario, dias) {
+            private static final long serialVersionUID = 1L;
 
-        
-
-        JTable table = new JTable(tabla, dias);
-        table.setRowHeight(60);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
-
-        JScrollPane scroll = new JScrollPane(table);
-        add(scroll, BorderLayout.CENTER);
-
-        JButton btnVolver = new JButton("⬅ Volver al menú");
-        btnVolver.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btnVolver.setBackground(new Color(70, 130, 180));
-        btnVolver.setForeground(Color.WHITE);
-        btnVolver.setFocusPainted(false);
-
-        btnVolver.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-            	
-            	menu.setVisible(true);
-            	setVisible(false);
-            	
+			@Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Esto bloquea la edición de todas las celdas
             }
-        });
+        };
 
-        add(btnVolver, BorderLayout.SOUTH);
+        // 2. ASIGNAR MODELO A LA TABLA
+        JTable tablaVisual = new JTable(modeloTabla);
+        
+        // Ajustes visuales
+        tablaVisual.setRowHeight(80); // Aumentamos un poco el alto para el texto multi-línea
+        tablaVisual.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tablaVisual.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
+        tablaVisual.setCellSelectionEnabled(false); // Opcional: evita que se resalten celdas individuales
+
+        JScrollPane panelDesplazable = new JScrollPane(tablaVisual);
+        add(panelDesplazable, BorderLayout.CENTER);
+
+        botonVolver = new JButton("⬅ Volver al menú");
+        botonVolver.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        botonVolver.setBackground(new Color(70, 130, 180));
+        botonVolver.setForeground(Color.WHITE);
+        botonVolver.setFocusPainted(false);
+
+        add(botonVolver, BorderLayout.SOUTH);
     }
 
     private int diaAColumna(String dia) {
@@ -86,4 +89,7 @@ public class Horario extends JFrame {
             default -> -1;
         };
     }
+
+    public JButton getBtnVolver() { return botonVolver; }
+    public void setBtnVolver(JButton btnVolver) { this.botonVolver = btnVolver; }
 }

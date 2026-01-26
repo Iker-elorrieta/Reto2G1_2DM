@@ -1,18 +1,23 @@
 package vista;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import java.net.Socket;
+import java.awt.Graphics;
+import java.awt.Image;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import controlador.Controlador;
 
 public class InicioCliente extends JFrame {
 
 	private static final long serialVersionUID = 1L;
-	private JLabel lbllogo;
+	private JLabel etiquetaLogo;
 	private JPanel panelFondo;
 
 	public InicioCliente() {
 		setTitle("Inicio Cliente");
+		
 		setSize(800, 450);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -34,32 +39,32 @@ public class InicioCliente extends JFrame {
 		setContentPane(panelFondo);
 		panelFondo.setLayout(null);
 
-		lbllogo = new JLabel();
-		lbllogo.setBounds(145, 122, 361, 210);
-		panelFondo.add(lbllogo);
-		lbllogo.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelo.png")));
+		etiquetaLogo = new JLabel();
+		etiquetaLogo.setBounds(145, 122, 361, 210);
+		panelFondo.add(etiquetaLogo);
+		etiquetaLogo.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelo.png")));
+	}
 
-		// EVENTO CLICK EN TODA LA PANTALLA
-		panelFondo.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				try {
-					Socket socket = new Socket("localhost", 5000);
-					System.out.println("Conectado al servidor");
-					Login login = new Login(socket);
-					login.setVisible(true);
-					setVisible(false);
+	public JPanel getPanelFondo() {
+		return panelFondo;
+	}
 
-				} catch (Exception ex) {
-					JOptionPane.showMessageDialog(null, "No se pudo conectar al servidor", "Error",
-							JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		});
+	public void setPanelFondo(JPanel panelFondo) {
+		this.panelFondo = panelFondo;
+	}
+
+	public void mostrarMensajeError(String mensaje) {
+		JOptionPane.showMessageDialog(
+			this,
+			mensaje,
+			"Error",
+			JOptionPane.ERROR_MESSAGE
+		);
 	}
 
 	public static void main(String[] args) {
-		InicioCliente inicio = new InicioCliente();
-		inicio.setVisible(true);
+			Controlador controlador = new Controlador();
+			controlador.iniciar();
+	
 	}
 }

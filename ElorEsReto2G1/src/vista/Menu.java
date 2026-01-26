@@ -1,136 +1,82 @@
 package vista;
 
-import javax.swing.*;
-import javax.swing.border.*;
+import java.awt.Color;
+import java.awt.Font;
 
-import controlador.Controlador;
-import modelo.Users;
-
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.net.Socket;
-import java.awt.event.ActionEvent;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JOptionPane;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 
 public class Menu extends JFrame {
 
     private static final long serialVersionUID = 1L;
-    private JPanel contentPane;
-    @SuppressWarnings("unused")
-    private Controlador controlador;
-    @SuppressWarnings("unused")
-    private int idUsuario;
+        private JPanel panelContenido;
+    private JButton btnPerfil;
+    private JButton btnAlumnos;
+    private JButton btnConsultarHorario;
+    private JButton btnOtrosHorarios;
+    private JButton btnCrearReunion;
+    private JButton btnVerReuniones;
+    private JButton btnDesc;
 
-    public Menu(Controlador controlador, int idUsuario) {
-    	this.controlador = controlador;
-    	this.idUsuario = idUsuario;
+    public Menu() {
     	
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 780, 541);
         setTitle("Menú Principal");
 
-        contentPane = new JPanel();
-        contentPane.setBackground(new Color(245, 245, 245));
-        contentPane.setLayout(null);
-        setContentPane(contentPane);
+        panelContenido = new PanelConFondo("fondo2.jpg");
+        panelContenido.setBackground(new Color(245, 245, 245));
+        panelContenido.setLayout(null);
+        setContentPane(panelContenido);
+        
+        
 
         // ===== PANEL IZQUIERDO =====
-        JPanel panelIzq = new JPanel();
-        panelIzq.setBounds(30, 28, 220, 438);
-        panelIzq.setLayout(null);
-        panelIzq.setBackground(Color.WHITE);
-        panelIzq.setBorder(new LineBorder(new Color(200, 200, 200), 1, true));
-        contentPane.add(panelIzq);
+        JPanel panelIzquierdo = new JPanel();
+        panelIzquierdo.setBounds(544, 0, 220, 502);
+        panelIzquierdo.setLayout(null);
+        panelIzquierdo.setBackground(Color.LIGHT_GRAY);
+        panelIzquierdo.setBorder(new LineBorder(new Color(200, 200, 200), 1, true));
+        panelContenido.add(panelIzquierdo);
 
-        JButton btnPerfil = new JButton("⚙  Consultar Perfil");
-        btnPerfil.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-
-	                Users user = controlador.obtenerPerfil(idUsuario);
-	              
-	                if (user != null) {
-	                    Perfil perfil = new Perfil(user,Menu.this);
-	                    perfil.setVisible(true);
-	                    setVisible(false);
-	                } else {
-	                    JOptionPane.showMessageDialog(null, 
-	                        "No se pudo obtener el perfil del usuario.",
-	                        "Error",
-	                        JOptionPane.ERROR_MESSAGE);
-	                }
-	            }
-	        });
-
+        btnPerfil = new JButton("⚙");
+        btnPerfil.setBackground(Color.WHITE);
         btnPerfil.setBounds(20, 114, 180, 76);
         btnPerfil.setFocusPainted(false);
-        panelIzq.add(btnPerfil);
+        panelIzquierdo.add(btnPerfil);
 
-        JButton btnAlumnos = new JButton("👤  Consultar Alumnos");
-        btnAlumnos.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		Alumnos vntnAlumn = new Alumnos(controlador, idUsuario,Menu.this);
-        		vntnAlumn.setVisible(true); 
-        		setVisible(false);
-        	}
-        });
+        btnAlumnos = new JButton("👤  Consultar Alumnos");
+        btnAlumnos.setBackground(Color.WHITE);
         btnAlumnos.setBounds(20, 201, 180, 145);
         btnAlumnos.setFocusPainted(false);
-        panelIzq.add(btnAlumnos);
+        panelIzquierdo.add(btnAlumnos);
         
-        JLabel lblelo = new JLabel("");
-        
-        lblelo.setBounds(0, 0, 220, 96);
-        panelIzq.add(lblelo);
-        lblelo.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelo.png")));
-        
-                JLabel lblPerfil = new JLabel("Perfil");
-                lblPerfil.setBounds(10, 80, 180, 25);
-                panelIzq.add(lblPerfil);
-                lblPerfil.setFont(new Font("Segoe UI", Font.BOLD, 16));
+                JLabel etiquetaPerfil = new JLabel("PERFIL");
+                etiquetaPerfil.setBounds(10, 11, 180, 25);
+                panelIzquierdo.add(etiquetaPerfil);
+                etiquetaPerfil.setFont(new Font("Segoe UI", Font.BOLD, 16));
                 
-                JButton btnDesc = new JButton("Desconectar");
+                btnDesc = new JButton("Desconectar");
+                btnDesc.setBackground(Color.WHITE);
                 btnDesc.setFocusPainted(false);
                 btnDesc.setBounds(20, 371, 180, 56);
-                panelIzq.add(btnDesc);
-                btnDesc.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-
-                        int opcion = JOptionPane.showConfirmDialog(
-                                null,
-                                "¿Deseas cerrar la sesión?",
-                                "Confirmar desconexión",
-                                JOptionPane.YES_NO_OPTION
-                        );
-
-                        if (opcion == JOptionPane.YES_OPTION) {
-                            // Desconectar y cerrar socket
-                            controlador.desconectar();
-
-                            // Crear nueva conexión al servidor
-                            try {
-                                Socket nuevoSocket = new Socket("localhost", 5000);
-                                Login login = new Login(nuevoSocket);
-                                login.setVisible(true);
-                                dispose();
-                            } catch (Exception ex) {
-                                JOptionPane.showMessageDialog(null, "No se pudo conectar al servidor", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                                // Si no puede conectar, volver a inicio
-                                InicioCliente inicio = new InicioCliente();
-                                inicio.setVisible(true);
-                                dispose();
-                            }
-                        }
-                    }
-                });
+                panelIzquierdo.add(btnDesc);
 
 
 
         // ===== PANEL DERECHO =====
-        JPanel panelDer = new JPanel();
-        panelDer.setBounds(260, 107, 480, 384);
-        panelDer.setLayout(null);
-        panelDer.setBackground(new Color(245, 245, 245));
-        contentPane.add(panelDer);
+        JPanel panelDerecho = new JPanel();
+        panelDerecho.setForeground(new Color(255, 255, 255));
+        panelDerecho.setBounds(33, 107, 480, 384);
+        panelDerecho.setLayout(null);
+        panelDerecho.setBackground(new Color(245, 245, 245));
+        panelContenido.add(panelDerecho);
 
         // ===== HORARIO =====
         JPanel panelHorario = new JPanel();
@@ -144,34 +90,18 @@ public class Menu extends JFrame {
                 TitledBorder.TOP,
                 new Font("Segoe UI", Font.BOLD, 14)
         ));
-        panelDer.add(panelHorario);
+        panelDerecho.add(panelHorario);
 
-        JButton btnConsultarHorario = new JButton("Consultar horario");
+        btnConsultarHorario = new JButton("Consultar horario");
         btnConsultarHorario.setBounds(40, 31, 180, 138);
+        btnConsultarHorario.setBackground(Color.WHITE);
         panelHorario.add(btnConsultarHorario);
-        btnConsultarHorario.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	Horario panelHorario = new Horario(controlador,idUsuario,Menu.this);
-            	panelHorario.setVisible(true);
-            	setVisible(false);
-            	
-            	
-            }
-        });
         
 
-        JButton btnOtrosHorarios = new JButton("Consultar otros horarios");
+        btnOtrosHorarios = new JButton("Consultar otros horarios");
+        btnOtrosHorarios.setBackground(Color.WHITE);
         btnOtrosHorarios.setBounds(243, 31, 202, 138);
         panelHorario.add(btnOtrosHorarios);
-        btnOtrosHorarios.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	OtrsHorarios panelHorarios = new OtrsHorarios(controlador,Menu.this);
-            	panelHorarios.setVisible(true);
-            	setVisible(false);
-            	
-            	
-            }
-        });
 
         // ===== REUNIONES =====
         JPanel panelReuniones = new JPanel();
@@ -185,30 +115,91 @@ public class Menu extends JFrame {
                 TitledBorder.TOP,
                 new Font("Segoe UI", Font.BOLD, 14)
         ));
-        panelDer.add(panelReuniones);
+        panelDerecho.add(panelReuniones);
 
-        JButton btnCrearReunion = new JButton("Crear reunión");
+        btnCrearReunion = new JButton("Crear reunión");
+        btnCrearReunion.setBackground(Color.WHITE);
         btnCrearReunion.setBounds(40, 29, 180, 140);
         panelReuniones.add(btnCrearReunion);
 
-        JButton btnVerReuniones = new JButton("Ver reuniones");
+        btnVerReuniones = new JButton("Ver reuniones");
+        btnVerReuniones.setBackground(Color.WHITE);
         btnVerReuniones.setBounds(242, 29, 209, 140);
         panelReuniones.add(btnVerReuniones);
-        btnVerReuniones.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	VerReuniones panelReuniones = new VerReuniones();
-            	panelReuniones.setVisible(true);
-            	setVisible(false);
-            	
-            	
-            }
-        });
-    
-            
         
-        JLabel lblbanner = new JLabel("");
-        lblbanner.setBounds(260, 28, 480, 68);
-        contentPane.add(lblbanner);
-        lblbanner.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelorrieta.jpg")));
+        JLabel etiquetaLogoSuperior = new JLabel("");
+        etiquetaLogoSuperior.setBounds(260, 11, 237, 96);
+        panelContenido.add(etiquetaLogoSuperior);
+        etiquetaLogoSuperior.setIcon(new ImageIcon(getClass().getClassLoader().getResource("logoelo.png")));
     }
+
+    public boolean confirmarCierreSesion() {
+            int opcion = JOptionPane.showConfirmDialog(
+            	this,
+            	"¿Deseas cerrar la sesión?",
+            	"Confirmar desconexión",
+            	JOptionPane.YES_NO_OPTION
+            );
+            return opcion == JOptionPane.YES_OPTION;
+    }
+
+    public void mostrarMensajeError(String mensaje) {
+            JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+        public JButton getBtnPerfil() {
+                return btnPerfil;
+        }
+
+        public void setBtnPerfil(JButton btnPerfil) {
+                this.btnPerfil = btnPerfil;
+        }
+
+        public JButton getBtnAlumnos() {
+                return btnAlumnos;
+        }
+
+        public void setBtnAlumnos(JButton btnAlumnos) {
+                this.btnAlumnos = btnAlumnos;
+        }
+
+        public JButton getBtnConsultarHorario() {
+                return btnConsultarHorario;
+        }
+
+        public void setBtnConsultarHorario(JButton btnConsultarHorario) {
+                this.btnConsultarHorario = btnConsultarHorario;
+        }
+
+        public JButton getBtnOtrosHorarios() {
+                return btnOtrosHorarios;
+        }
+
+        public void setBtnOtrosHorarios(JButton btnOtrosHorarios) {
+                this.btnOtrosHorarios = btnOtrosHorarios;
+        }
+
+        public JButton getBtnCrearReunion() {
+                return btnCrearReunion;
+        }
+
+        public void setBtnCrearReunion(JButton btnCrearReunion) {
+                this.btnCrearReunion = btnCrearReunion;
+        }
+
+        public JButton getBtnVerReuniones() {
+                return btnVerReuniones;
+        }
+
+        public void setBtnVerReuniones(JButton btnVerReuniones) {
+                this.btnVerReuniones = btnVerReuniones;
+        }
+
+        public JButton getBtnDesc() {
+                return btnDesc;
+        }
+
+        public void setBtnDesc(JButton btnDesc) {
+                this.btnDesc = btnDesc;
+        }
 }
