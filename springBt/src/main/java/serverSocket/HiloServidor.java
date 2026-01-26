@@ -6,13 +6,17 @@ import java.net.Socket;
 import java.util.List;
 
 import com.example.springBt.AlumnoService;
+import com.example.springBt.CentrosService;
 import com.example.springBt.HorarioService;
 import com.example.springBt.LoginService;
 import com.example.springBt.PerfilService;
+import com.example.springBt.ReunionesService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import modelo.Centro;
 import modelo.Horarios;
+import modelo.Reuniones;
 import modelo.Users;
 
 public class HiloServidor extends Thread {
@@ -25,6 +29,9 @@ public class HiloServidor extends Thread {
     private final PerfilService perfilService = new PerfilService();
     private final AlumnoService alumnoService = new AlumnoService();
     private final HorarioService horarioService = new HorarioService();
+    private final ReunionesService reunionService =new ReunionesService();
+    private final CentrosService centrosService = new CentrosService();
+    //private final ReunionesService reunionesService = new ReunionesService();
 
     public HiloServidor(Socket conx) {
         this.conx = conx;
@@ -130,6 +137,7 @@ public class HiloServidor extends Thread {
                             // EXACTAMENTE IGUAL QUE GET_ALUMNOS
                             salida.writeUTF(jsonResponse);
                             salida.flush();
+                            System.out.println(new Gson().toJson(jsonResponse));
 
                             System.out.println("Horario enviado para profesor: " + idProfesor);
                             break;
@@ -141,10 +149,54 @@ public class HiloServidor extends Thread {
 
                             salida.writeUTF(jsonResponse);
                             salida.flush();
+                            System.out.println(new Gson().toJson(jsonResponse));
 
                             System.out.println("Profesores enviados");
                             break;
                         }
+                        case "CREAR_REUNION": {
+                            String jsonReunion = entrada.readUTF();
+                            Reuniones reunion = gson.fromJson(jsonReunion, Reuniones.class);
+
+                            boolean creada = reunionService.crearReunion(reunion);
+                            salida.writeBoolean(creada);
+                            salida.flush();
+
+                            System.out.println("Reunión " + (creada ? "creada" : "fallida") + ": " + reunion.getTitulo());
+                            break;
+                        }
+                        case "GET_CENTROS": {
+                            List<Centro> centros = centrosService.obtenerTodosCentros();
+                            String jsonResponse = gson.toJson(centros);
+                            
+                            byte[] data = jsonResponse.getBytes("UTF-8"); 
+                            salida.writeInt(data.length);
+                            salida.write(data);
+                            salida.flush();
+
+
+
+                            System.out.println("Centros enviados");
+                            break;
+                        }
+                        case "GET_REUNIONES": {
+                            //int idProfesor = entrada.readInt();
+                           /*
+                            * / List<Reuniones> reuniones = reunionesService.obtenerReunionesProfesor(idProfesor);
+                            String json = gson.toJson(reuniones);
+
+                            byte[] data = json.getBytes("UTF-8");
+                            salida.writeInt(data.length);
+                            salida.write(data);
+                            */
+                            
+                            break;
+                        }
+
+
+
+                        
+
 
 
                         

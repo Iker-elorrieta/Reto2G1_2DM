@@ -22,9 +22,21 @@ public class Horarios implements java.io.Serializable {
 	private String observaciones;
 	private Timestamp createdAt;
 	private Timestamp updatedAt;
+	private String nombreModulo;
 
 	public Horarios() {
 	}
+
+
+	    public Horarios(modelo.Horarios h) {
+	        this.dia = h.getDia();
+	        this.hora = h.getHora();
+	        this.aula = h.getAula();
+	        this.observaciones = h.getObservaciones();
+	        this.nombreModulo = (h.getModulos() != null) ? h.getModulos().getNombre() : null;
+	    }
+
+	    
 
 	public Horarios(Users users, Modulos modulos, String dia, byte hora) {
 		this.users = users;
@@ -43,6 +55,7 @@ public class Horarios implements java.io.Serializable {
 		this.observaciones = observaciones;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
+		
 	}
 
 	public Integer getId() {
@@ -115,6 +128,14 @@ public class Horarios implements java.io.Serializable {
 
 	public void setUpdatedAt(Timestamp updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public String getNombreModulo() {
+		return nombreModulo;
+	}
+
+	public void setNombreModulo(String nombreModulo) {
+		this.nombreModulo = nombreModulo;
 	}
 
 }
