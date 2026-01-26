@@ -4,11 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.List;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel; 
 
 import modelo.Horarios;
 
@@ -17,23 +17,19 @@ public class Horario extends JFrame {
     private JButton botonVolver;
 
     public Horario(List<Horarios> listaHorario, String tituloVentana) {
-
         setTitle(tituloVentana);
         setSize(900, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         String[] dias = {"LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"};
-
-        // 6 horas x 5 días
         String[][] tablaHorario = new String[6][5];
+
         for (Horarios bloqueHorario : listaHorario) {
             int hora = bloqueHorario.getHora() - 1;
             int columna = diaAColumna(bloqueHorario.getDia());
 
-            if (hora < 0 || hora >= 6 || columna == -1) {
-                continue;
-            }
+            if (hora < 0 || hora >= 6 || columna == -1) continue;
 
             String textoCelda = "";
             if (bloqueHorario.getNombreModulo() != null) {
@@ -44,19 +40,32 @@ public class Horario extends JFrame {
                 textoCelda = bloqueHorario.getAula();
             }
 
-
             if (textoCelda.isEmpty()) {
                 textoCelda = "Libre";
             }
 
-
-            tablaHorario[hora][columna] = textoCelda;
+          //Un poco de html para que se vea el texto completo
+            tablaHorario[hora][columna] = "<html><body style='width: 100px; text-align: center;'>" + textoCelda + "</body></html>";
         }
 
-        JTable tablaVisual = new JTable(tablaHorario, dias);
-        tablaVisual.setRowHeight(60);
-        tablaVisual.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        // 1. CREAR MODELO NO EDITABLE
+        DefaultTableModel modeloTabla = new DefaultTableModel(tablaHorario, dias) {
+            private static final long serialVersionUID = 1L;
+
+			@Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Esto bloquea la edición de todas las celdas
+            }
+        };
+
+        // 2. ASIGNAR MODELO A LA TABLA
+        JTable tablaVisual = new JTable(modeloTabla);
+        
+        // Ajustes visuales
+        tablaVisual.setRowHeight(80); // Aumentamos un poco el alto para el texto multi-línea
+        tablaVisual.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         tablaVisual.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
+        tablaVisual.setCellSelectionEnabled(false); // Opcional: evita que se resalten celdas individuales
 
         JScrollPane panelDesplazable = new JScrollPane(tablaVisual);
         add(panelDesplazable, BorderLayout.CENTER);
@@ -81,11 +90,6 @@ public class Horario extends JFrame {
         };
     }
 
-    public JButton getBtnVolver() {
-        return botonVolver;
-    }
-
-    public void setBtnVolver(JButton btnVolver) {
-        this.botonVolver = btnVolver;
-    }
+    public JButton getBtnVolver() { return botonVolver; }
+    public void setBtnVolver(JButton btnVolver) { this.botonVolver = btnVolver; }
 }

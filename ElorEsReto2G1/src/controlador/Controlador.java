@@ -2,15 +2,21 @@ package controlador;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+
 import java.net.Socket;
+
 import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import com.google.gson.Gson;
+
+import modelo.Centro;
 import modelo.Horarios;
 import modelo.Users;
 import vista.Alumnos;
@@ -132,7 +138,7 @@ public class Controlador {
             return;
         }
 
-        CrearReuiniones vistaCrear = new CrearReuiniones(alumnos);
+        CrearReuiniones vistaCrear = new CrearReuiniones(this, alumnos);
         vistaCrear.getBtnVolver().addActionListener(e -> {
             vistaCrear.dispose();
             vistaMenu.setVisible(true);
@@ -315,4 +321,32 @@ public class Controlador {
             socket = null;
         }
     }
+
+    public List<Centro> obtenerCentros() {
+        try {
+            salidaDatos.writeUTF("GET_CENTROS");
+            salidaDatos.flush();
+
+            int length = entradaDatos.readInt();
+            byte[] data = new byte[length];
+            entradaDatos.readFully(data);
+
+            String jsonResponse = new String(data, "UTF-8"); 
+            if (jsonResponse != null && !jsonResponse.isEmpty()) {
+                Gson gson = new Gson();
+                Centro[] centrosArray = gson.fromJson(jsonResponse, Centro[].class);
+                return List.of(centrosArray);
+            }
+
+            return List.of();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+    
+    
+
+
 }

@@ -28,7 +28,12 @@ public class Users implements Serializable {
     private Timestamp updatedAt;
 
 
-    public Users() {}
+    @Override
+	public String toString() {
+		return  nombre + " " +   apellidos ;
+	}
+
+	public Users() {}
 
     public Users(Tipos tipos, String email, String username, String password) {
         this.tipos = tipos;
