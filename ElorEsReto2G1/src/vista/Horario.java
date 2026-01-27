@@ -30,24 +30,31 @@ public class Horario extends JFrame {
             int columna = diaAColumna(bloqueHorario.getDia());
 
             if (hora < 0 || hora >= 6 || columna == -1) continue;
+            StringBuilder texto = new StringBuilder();
 
-            String textoCelda = "";
             if (bloqueHorario.getNombreModulo() != null) {
-                textoCelda = bloqueHorario.getNombreModulo();
-            } else if (bloqueHorario.getObservaciones() != null) {
-                textoCelda = bloqueHorario.getObservaciones();
-            } else if (bloqueHorario.getAula() != null) {
-                textoCelda = bloqueHorario.getAula();
+                texto.append("<b>").append(bloqueHorario.getNombreModulo()).append("</b>");
             }
 
-            if (textoCelda.isEmpty()) {
-                textoCelda = "Libre";
+
+            if (bloqueHorario.getAula() != null) {
+                if (texto.length() > 0) texto.append("<br>");
+                texto.append("Aula: ").append(bloqueHorario.getAula());
             }
 
-          //Un poco de html para que se vea el texto completo
-            tablaHorario[hora][columna] = "<html><body style='width: 100px; text-align: center;'>" + textoCelda + "</body></html>";
+            if (bloqueHorario.getObservaciones() != null) {
+                if (texto.length() > 0) texto.append("<br>");
+                texto.append(bloqueHorario.getObservaciones());
+            }
+
+            String textoCelda = texto.length() > 0 ? texto.toString() : "Libre";
+
+            tablaHorario[hora][columna] =
+                "<html><body style='width: 100px; text-align: center;'>" +
+                textoCelda +
+                "</body></html>";
+
         }
-
         // 1. CREAR MODELO NO EDITABLE
         DefaultTableModel modeloTabla = new DefaultTableModel(tablaHorario, dias) {
             private static final long serialVersionUID = 1L;

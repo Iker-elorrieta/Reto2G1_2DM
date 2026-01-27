@@ -1,7 +1,5 @@
 package modelo;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -9,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.gson.Gson;
+
+import controlador.HttpClientHelper;
 
 public class Users implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -176,17 +176,14 @@ public class Users implements Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public static Users obtenerPerfil(DataInputStream entrada, DataOutputStream salida, int idUsuario) {
+    public static Users obtenerPerfilREST(int idUsuario) {
         try {
-            salida.writeUTF("GET_PERFIL");
-            salida.writeInt(idUsuario);
-            salida.flush();
+            String url = "http://localhost:8080/api/perfil/" + idUsuario;
+            String json = HttpClientHelper.get(url);
 
-            String jsonResponse = entrada.readUTF();
-
-            if (jsonResponse != null && !jsonResponse.isEmpty()) {
+            if (json != null && !json.isEmpty()) {
                 Gson gson = new Gson();
-                return gson.fromJson(jsonResponse, Users.class);
+                return gson.fromJson(json, Users.class);
             }
 
             return null;
@@ -197,21 +194,15 @@ public class Users implements Serializable {
         }
     }
 
-    public static List<Users> obtenerAlumnos(DataInputStream entrada, DataOutputStream salida, int idProfesor) {
+
+    public static List<Users> obtenerAlumnosREST(int idProfesor) {
         try {
-            salida.writeUTF("GET_ALUMNOS");
-            salida.writeInt(idProfesor);
-            salida.flush();
+            String url = "http://localhost:8080/api/profesor/" + idProfesor + "/alumnos";
+            String json = HttpClientHelper.get(url);
 
-            String jsonResponse = entrada.readUTF();
-
-            if (jsonResponse != null && !jsonResponse.isEmpty()) {
-                Gson gson = new Gson();
-                Users[] alumnosArray = gson.fromJson(jsonResponse, Users[].class);
-                return Arrays.asList(alumnosArray);
-            }
-
-            return new ArrayList<>();
+            Gson gson = new Gson();
+            Users[] array = gson.fromJson(json, Users[].class);
+            return Arrays.asList(array);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -219,24 +210,19 @@ public class Users implements Serializable {
         }
     }
 
-    public static List<Users> obtenerProfesores(DataInputStream entrada, DataOutputStream salida) {
+
+    public static List<Users> obtenerProfesoresREST() {
         try {
-            salida.writeUTF("GET_PROFESORES");
-            salida.flush();
+            String json = HttpClientHelper.get("http://localhost:8080/api/profesores");
 
-            String jsonResponse = entrada.readUTF();
-
-            if (jsonResponse != null && !jsonResponse.isEmpty()) {
-                Gson gson = new Gson();
-                Users[] profesoresArray = gson.fromJson(jsonResponse, Users[].class);
-                return Arrays.asList(profesoresArray);
-            }
-
-            return new ArrayList<>();
+            Gson gson = new Gson();
+            Users[] array = gson.fromJson(json, Users[].class);
+            return Arrays.asList(array);
 
         } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
+
 }

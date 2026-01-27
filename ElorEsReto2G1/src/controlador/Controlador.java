@@ -2,13 +2,6 @@ package controlador;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-import java.net.Socket;
-
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -19,6 +12,7 @@ import com.google.gson.Gson;
 import modelo.Centro;
 import modelo.Horarios;
 import modelo.Users;
+import modelo.Reuniones;
 import vista.Alumnos;
 import vista.CrearReuiniones;
 import vista.Horario;
@@ -34,58 +28,29 @@ public class Controlador {
     private InicioCliente vistaInicio;
     private Login vistaLogin;
     private Menu vistaMenu;
-    private ControladorServidor controladorServidor;
-    private Socket socket;
-    private DataInputStream entradaDatos;
-    private DataOutputStream salidaDatos;
     private int idUsuario;
-    private boolean conectando;
 
     public void iniciar() {
         vistaInicio = new InicioCliente();
         vistaInicio.getPanelFondo().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evento) {
-                conectarYMostrarLogin();
+                mostrarVistaLogin();
+                vistaInicio.setVisible(false);
             }
         });
         vistaInicio.setVisible(true);
     }
 
-    private void conectarYMostrarLogin() {
-        if (conectando) {
-            return;
-        }
-        conectando = true;
-        try {
-            socket = new Socket("localhost", 5000);
-            controladorServidor = new ControladorServidor(socket);
-            entradaDatos = controladorServidor.getEntrada();
-            salidaDatos = controladorServidor.getSalida();
-            vistaInicio.setVisible(false);
-            mostrarVistaLogin();
-        } catch (IOException excepcion) {
-            vistaInicio.mostrarMensajeError("No se pudo conectar al servidor");
-        } finally {
-            conectando = false;
-        }
-    }
-
     private void mostrarVistaLogin() {
-        if (vistaLogin != null) {
-            vistaLogin.dispose();
-        }
+        if (vistaLogin != null) vistaLogin.dispose();
+
         vistaLogin = new Login();
         vistaLogin.getBtnLogin().addActionListener(evento -> intentarInicioSesion());
         vistaLogin.setVisible(true);
     }
 
     private void intentarInicioSesion() {
-        if (controladorServidor == null || entradaDatos == null || salidaDatos == null) {
-            vistaLogin.mostrarMensajeError("No hay conexión con el servidor", "Error");
-            return;
-        }
-
         String usuario = vistaLogin.getUsuario();
         String contrasena = vistaLogin.getContrasena();
 
@@ -94,26 +59,31 @@ public class Controlador {
             return;
         }
 
-        int codigo = controladorServidor.verificarLogin(usuario, contrasena);
+        try {
+            String url = "http://localhost:8080/api/login/" + usuario + "/" + contrasena;
+            String json = HttpClientHelper.get(url);
 
-        if (codigo == 1) {
-            idUsuario = controladorServidor.getUsuarioId();
-            vistaLogin.mostrarMensajeInformativo("Login correcto", "Acceso permitido");
-            vistaLogin.dispose();
-            vistaLogin = null;
-            mostrarVistaMenu();
-        } else if (codigo == 2) {
-            vistaLogin.mostrarMensajeAdvertencia("Solo los profesores pueden iniciar sesión", "Acceso denegado");
-        } else {
-            vistaLogin.mostrarMensajeError("Usuario o contraseña incorrectos", "Acceso denegado");
-            vistaLogin.clearPassword();
+            Gson gson = new Gson();
+            Users user = gson.fromJson(json, Users.class);
+            if (user != null && user.getTipos().getId() == 3) {
+                idUsuario = user.getId();
+                vistaLogin.dispose();
+                mostrarVistaMenu();
+            
+
+            } else {
+                vistaLogin.mostrarMensajeError("Usuario o contraseña incorrectos", "Acceso denegado");
+            }
+
+        } catch (Exception e) {
+            vistaLogin.mostrarMensajeError("Error conectando con el servidor", "Error");
         }
     }
 
+
     private void mostrarVistaMenu() {
-        if (vistaMenu != null) {
-            vistaMenu.dispose();
-        }
+        if (vistaMenu != null) vistaMenu.dispose();
+
         vistaMenu = new Menu();
         vistaMenu.getBtnPerfil().addActionListener(evento -> mostrarPerfilPropio());
         vistaMenu.getBtnAlumnos().addActionListener(evento -> mostrarAlumnos());
@@ -122,48 +92,42 @@ public class Controlador {
         vistaMenu.getBtnCrearReunion().addActionListener(evento -> crearReuniones());
         vistaMenu.getBtnVerReuniones().addActionListener(evento -> mostrarReuniones());
         vistaMenu.getBtnDesc().addActionListener(evento -> manejarCierreSesion());
+
         vistaMenu.setVisible(true);
     }
 
     private void crearReuniones() {
-        List<Users> alumnos = Users.obtenerAlumnos(entradaDatos, salidaDatos, idUsuario);
+        List<Users> alumnos = Users.obtenerAlumnosREST(idUsuario);
         if (alumnos == null || alumnos.isEmpty()) {
             vistaMenu.mostrarMensajeError("No se encontraron alumnos para crear reuniones.");
             return;
         }
 
-        Users profesor = Users.obtenerPerfil(entradaDatos, salidaDatos, idUsuario);
+        Users profesor = Users.obtenerPerfilREST(idUsuario);
         if (profesor == null) {
             vistaMenu.mostrarMensajeError("No se pudo obtener el perfil del profesor.");
             return;
         }
 
         CrearReuiniones vistaCrear = new CrearReuiniones(this, alumnos);
+
         vistaCrear.getBtnVolver().addActionListener(e -> {
             vistaCrear.dispose();
             vistaMenu.setVisible(true);
         });
 
         vistaCrear.getBtnCrear().addActionListener(e -> {
-            modelo.Reuniones reunion = vistaCrear.construirReunion(profesor);
-            if (reunion == null) return; // Error en fecha
+            Reuniones reunion = vistaCrear.construirReunion(profesor);
+            if (reunion == null) return;
 
-            try {
-                salidaDatos.writeUTF("CREAR_REUNION");
-                salidaDatos.writeUTF(new com.google.gson.Gson().toJson(reunion));
-                salidaDatos.flush();
+            boolean creada = Reuniones.crearReunionREST(reunion);
 
-                boolean confirmacion = entradaDatos.readBoolean();
-                if (confirmacion) {
-                    JOptionPane.showMessageDialog(vistaCrear, "Reunión creada correctamente.");
-                    vistaCrear.dispose();
-                    vistaMenu.setVisible(true);
-                } else {
-                    JOptionPane.showMessageDialog(vistaCrear, "Error al crear la reunión.");
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(vistaCrear, "Error de comunicación con el servidor.");
+            if (creada) {
+                JOptionPane.showMessageDialog(vistaCrear, "Reunión creada correctamente.");
+                vistaCrear.dispose();
+                vistaMenu.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(vistaCrear, "Error al crear la reunión.");
             }
         });
 
@@ -171,9 +135,8 @@ public class Controlador {
         vistaCrear.setVisible(true);
     }
 
-
-	private void mostrarPerfilPropio() {
-        Users usuario = Users.obtenerPerfil(entradaDatos, salidaDatos, idUsuario);
+    private void mostrarPerfilPropio() {
+        Users usuario = Users.obtenerPerfilREST(idUsuario);
         if (usuario == null) {
             vistaMenu.mostrarMensajeError("No se pudo obtener el perfil del usuario.");
             return;
@@ -192,7 +155,8 @@ public class Controlador {
     }
 
     private void mostrarAlumnos() {
-        List<Users> listadoAlumnos = Users.obtenerAlumnos(entradaDatos, salidaDatos, idUsuario);
+        List<Users> listadoAlumnos = Users.obtenerAlumnosREST(idUsuario);
+
         if (listadoAlumnos == null || listadoAlumnos.isEmpty()) {
             vistaMenu.mostrarMensajeError("No se encontraron alumnos.");
             return;
@@ -209,12 +173,13 @@ public class Controlador {
                 mostrarPerfil(alumnoSeleccionado, vistaAlumnos);
             }
         });
+
         vistaMenu.setVisible(false);
         vistaAlumnos.setVisible(true);
     }
 
     private void mostrarHorarioPropio() {
-        List<Horarios> horarioDocente = Horarios.obtenerHorario(entradaDatos, salidaDatos, idUsuario);
+        List<Horarios> horarioDocente = Horarios.obtenerHorarioREST(idUsuario);
         mostrarHorario(horarioDocente, "Horario del profesor", vistaMenu);
     }
 
@@ -223,34 +188,40 @@ public class Controlador {
             JOptionPane.showMessageDialog(ventanaAnterior, "No hay horario disponible.");
             return;
         }
+
         Horario vistaHorario = new Horario(horario, titulo);
         vistaHorario.getBtnVolver().addActionListener(evento -> {
             vistaHorario.dispose();
             ventanaAnterior.setVisible(true);
         });
+
         ventanaAnterior.setVisible(false);
         vistaHorario.setVisible(true);
     }
 
     private void mostrarOtrosHorarios() {
-        List<Users> listadoProfesores = Users.obtenerProfesores(entradaDatos, salidaDatos);
-        if (listadoProfesores == null || listadoProfesores.isEmpty()) {
+        List<Users> profesores = Users.obtenerProfesoresREST();
+
+        if (profesores == null || profesores.isEmpty()) {
             vistaMenu.mostrarMensajeError("No se encontraron profesores.");
             return;
         }
 
-        OtrsHorarios vistaOtrosHorarios = new OtrsHorarios(listadoProfesores);
+        OtrsHorarios vistaOtrosHorarios = new OtrsHorarios(profesores);
+
         vistaOtrosHorarios.getBtnVerHorario().addActionListener(evento -> {
             Users profesorSeleccionado = vistaOtrosHorarios.getSelectedProfesor();
             if (profesorSeleccionado != null) {
-                List<Horarios> horario = Horarios.obtenerHorario(entradaDatos, salidaDatos, profesorSeleccionado.getId());
+                List<Horarios> horario = Horarios.obtenerHorarioREST(profesorSeleccionado.getId());
                 mostrarHorarioDesde(vistaOtrosHorarios, horario, profesorSeleccionado);
             }
         });
+
         vistaOtrosHorarios.getBtnVolver().addActionListener(evento -> {
             vistaOtrosHorarios.dispose();
             vistaMenu.setVisible(true);
         });
+
         vistaMenu.setVisible(false);
         vistaOtrosHorarios.setVisible(true);
     }
@@ -260,93 +231,34 @@ public class Controlador {
             JOptionPane.showMessageDialog(ventanaOrigen, "El profesor no tiene horario disponible.");
             return;
         }
-        StringBuilder nombreCompleto = new StringBuilder();
-        if (profesor.getNombre() != null) {
-            nombreCompleto.append(profesor.getNombre());
-        }
-        if (profesor.getApellidos() != null) {
-            if (nombreCompleto.length() > 0) {
-                nombreCompleto.append(' ');
-            }
-            nombreCompleto.append(profesor.getApellidos());
-        }
-        String tituloProfesor = nombreCompleto.length() > 0 ? nombreCompleto.toString() : "profesor";
-        Horario vistaHorario = new Horario(horario, "Horario de " + tituloProfesor);
+
+        String nombreCompleto = profesor.getNombre() + " " + profesor.getApellidos();
+
+        Horario vistaHorario = new Horario(horario, "Horario de " + nombreCompleto);
         vistaHorario.getBtnVolver().addActionListener(evento -> {
             vistaHorario.dispose();
             ventanaOrigen.setVisible(true);
         });
+
         ventanaOrigen.setVisible(false);
         vistaHorario.setVisible(true);
     }
 
-   
     private void mostrarReuniones() {
         VerReuniones vistaReuniones = new VerReuniones();
         vistaReuniones.setVisible(true);
     }
 
     private void manejarCierreSesion() {
-        if (!vistaMenu.confirmarCierreSesion()) {
-            return;
-        }
-        if (controladorServidor != null) {
-            controladorServidor.desconectar();
-            controladorServidor = null;
-        }
-        cerrarSocket();
         idUsuario = 0;
-        entradaDatos = null;
-        salidaDatos = null;
 
-        if (vistaMenu != null) {
-            vistaMenu.dispose();
-            vistaMenu = null;
-        }
-        if (vistaLogin != null) {
-            vistaLogin.dispose();
-            vistaLogin = null;
-        }
-        if (vistaInicio != null) {
-            vistaInicio.setVisible(true);
-        }
-    }
+        if (vistaMenu != null) vistaMenu.dispose();
+        if (vistaLogin != null) vistaLogin.dispose();
 
-    private void cerrarSocket() {
-        if (socket != null && !socket.isClosed()) {
-            try {
-                socket.close();
-            } catch (IOException ignored) {
-            }
-            socket = null;
-        }
+        vistaInicio.setVisible(true);
     }
 
     public List<Centro> obtenerCentros() {
-        try {
-            salidaDatos.writeUTF("GET_CENTROS");
-            salidaDatos.flush();
-
-            int length = entradaDatos.readInt();
-            byte[] data = new byte[length];
-            entradaDatos.readFully(data);
-
-            String jsonResponse = new String(data, "UTF-8"); 
-            if (jsonResponse != null && !jsonResponse.isEmpty()) {
-                Gson gson = new Gson();
-                Centro[] centrosArray = gson.fromJson(jsonResponse, Centro[].class);
-                return List.of(centrosArray);
-            }
-
-            return List.of();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return List.of();
-        }
+        return Centro.obtenerCentrosREST();
     }
-    
-    
-
-
 }

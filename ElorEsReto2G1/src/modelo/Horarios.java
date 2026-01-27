@@ -1,6 +1,5 @@
 package modelo;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -8,6 +7,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.gson.Gson;
+
+
+import controlador.HttpClientHelper;
 
 public class Horarios implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -116,23 +118,22 @@ public class Horarios implements Serializable {
 		this.updatedAt = updatedAt;
 	}
 
-	public static List<Horarios> obtenerHorario(DataInputStream entrada, DataOutputStream salida, int idProfesor) {
+	public static List<Horarios> obtenerHorarioREST(int idProfesor) {
 	    try {
-	        salida.writeUTF("GET_HORARIO");
-	        salida.writeInt(idProfesor);
-	        salida.flush();
-
-	        String jsonResponse = entrada.readUTF();
+	        String url = "http://localhost:8080/api/horario/" + idProfesor;
+	        String json = HttpClientHelper.get(url);
 
 	        Gson gson = new Gson();
-	        Horarios[] horarioArray = gson.fromJson(jsonResponse, Horarios[].class);
-	        return Arrays.asList(horarioArray);
+	        Horarios[] array = gson.fromJson(json, Horarios[].class);
+	        return Arrays.asList(array);
 
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        return new ArrayList<>();
 	    }
 	}
+
+
 
 	public String getNombreModulo() {
 		return nombreModulo;

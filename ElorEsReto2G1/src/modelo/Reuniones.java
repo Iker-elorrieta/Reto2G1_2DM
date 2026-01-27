@@ -3,6 +3,10 @@ package modelo;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
+import com.google.gson.Gson;
+
+import controlador.HttpClientHelper;
+
 public class Reuniones implements Serializable {
 
 	/**
@@ -135,5 +139,24 @@ public class Reuniones implements Serializable {
 	public void setUpdatedAt(Timestamp updatedAt) {
 		this.updatedAt = updatedAt;
 	}
+	
+	public static boolean crearReunionREST(Reuniones reunion) {
+	    try {
+	        Gson gson = new Gson();
+	        String json = gson.toJson(reunion);
+
+	        String respuesta = HttpClientHelper.postJson(
+	            "http://localhost:8080/api/reuniones",
+	            json
+	        );
+
+	        return Boolean.parseBoolean(respuesta);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
+
 
 }
