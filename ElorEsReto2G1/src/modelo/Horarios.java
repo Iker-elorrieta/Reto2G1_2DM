@@ -120,8 +120,7 @@ public class Horarios implements Serializable {
 
 	public static List<Horarios> obtenerHorarioREST(int idProfesor) {
 	    try {
-	        String url = "http://localhost:8080/api/horario/" + idProfesor;
-	        String json = HttpClientHelper.get(url);
+	        String json = HttpClientHelper.get("horario/" + idProfesor);
 
 	        Gson gson = new Gson();
 	        Horarios[] array = gson.fromJson(json, Horarios[].class);
@@ -132,6 +131,7 @@ public class Horarios implements Serializable {
 	        return new ArrayList<>();
 	    }
 	}
+
 
 
 

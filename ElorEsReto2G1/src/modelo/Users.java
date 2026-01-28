@@ -176,32 +176,31 @@ public class Users implements Serializable {
         this.updatedAt = updatedAt;
     }
 
+
+        // ============================================================
+        // ======================= MÉTODOS REST ========================
+        // ============================================================
+
+
     public static Users obtenerPerfilREST(int idUsuario) {
         try {
-            String url = "http://localhost:8080/api/perfil/" + idUsuario;
-            String json = HttpClientHelper.get(url);
+            String json = HttpClientHelper.get("perfil/" + idUsuario);
 
             if (json != null && !json.isEmpty()) {
-                Gson gson = new Gson();
-                return gson.fromJson(json, Users.class);
+                return new Gson().fromJson(json, Users.class);
             }
-
-            return null;
-
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+        return null;
     }
 
 
     public static List<Users> obtenerAlumnosREST(int idProfesor) {
         try {
-            String url = "http://localhost:8080/api/profesor/" + idProfesor + "/alumnos";
-            String json = HttpClientHelper.get(url);
+            String json = HttpClientHelper.get("profesor/" + idProfesor + "/alumnos");
 
-            Gson gson = new Gson();
-            Users[] array = gson.fromJson(json, Users[].class);
+            Users[] array = new Gson().fromJson(json, Users[].class);
             return Arrays.asList(array);
 
         } catch (Exception e) {
@@ -209,20 +208,20 @@ public class Users implements Serializable {
             return new ArrayList<>();
         }
     }
+        public static List<Users> obtenerProfesoresREST() {
+            try {
+                String json = HttpClientHelper.get("profesores");
 
+                Users[] array = new Gson().fromJson(json, Users[].class);
+                return Arrays.asList(array);
 
-    public static List<Users> obtenerProfesoresREST() {
-        try {
-            String json = HttpClientHelper.get("http://localhost:8080/api/profesores");
-
-            Gson gson = new Gson();
-            Users[] array = gson.fromJson(json, Users[].class);
-            return Arrays.asList(array);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new ArrayList<>();
+            }
         }
+
+     
     }
 
-}
+

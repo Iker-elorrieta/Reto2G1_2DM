@@ -33,8 +33,17 @@ public class Horario extends JFrame {
             StringBuilder texto = new StringBuilder();
 
             if (bloqueHorario.getNombreModulo() != null) {
-                texto.append("<b>").append(bloqueHorario.getNombreModulo()).append("</b>");
+                String nombre = bloqueHorario.getNombreModulo().trim().toLowerCase();
+
+           
+                if (nombre.contains("Programación multimedia y dispositivos móviles") ||
+                    nombre.contains("programación multimedia y dispositivos móviles")) {
+                    texto.append("<b>PMDM</b>");
+                } else {
+                    texto.append("<b>").append(bloqueHorario.getNombreModulo()).append("</b>");
+                }
             }
+
 
 
             if (bloqueHorario.getAula() != null) {
@@ -46,13 +55,13 @@ public class Horario extends JFrame {
                 if (texto.length() > 0) texto.append("<br>");
                 texto.append(bloqueHorario.getObservaciones());
             }
+            
+            
 
             String textoCelda = texto.length() > 0 ? texto.toString() : "Libre";
 
             tablaHorario[hora][columna] =
-                "<html><body style='width: 100px; text-align: center;'>" +
-                textoCelda +
-                "</body></html>";
+           "<html><body style='width: 100px; text-align: center;'>" + textoCelda  + "</body></html>";
 
         }
         // 1. CREAR MODELO NO EDITABLE

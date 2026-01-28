@@ -23,10 +23,9 @@ public class Centro {
     public String toString() {
         return NOM ;
     }
-    
     public static List<Centro> obtenerCentrosREST() {
         try {
-            String json = HttpClientHelper.get("http://localhost:8080/api/centros");
+            String json = HttpClientHelper.get("centros");
 
             Gson gson = new Gson();
             Centro[] array = gson.fromJson(json, Centro[].class);

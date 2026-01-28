@@ -60,17 +60,15 @@ public class Controlador {
         }
 
         try {
-            String url = "http://localhost:8080/api/login/" + usuario + "/" + contrasena;
-            String json = HttpClientHelper.get(url);
+            String json = HttpClientHelper.get("login/" + usuario + "/" + contrasena);
 
             Gson gson = new Gson();
             Users user = gson.fromJson(json, Users.class);
+
             if (user != null && user.getTipos().getId() == 3) {
                 idUsuario = user.getId();
                 vistaLogin.dispose();
                 mostrarVistaMenu();
-            
-
             } else {
                 vistaLogin.mostrarMensajeError("Usuario o contraseña incorrectos", "Acceso denegado");
             }
@@ -245,7 +243,7 @@ public class Controlador {
     }
 
     private void mostrarReuniones() {
-        VerReuniones vistaReuniones = new VerReuniones();
+        VerReuniones vistaReuniones = new VerReuniones(idUsuario);
         vistaReuniones.setVisible(true);
     }
 

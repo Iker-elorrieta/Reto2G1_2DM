@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import controlador.Controlador;
@@ -15,7 +14,9 @@ import modelo.Users;
 public class CrearReuiniones extends JFrame {
     private static final long serialVersionUID = 1L;
 
-    private JTextField campoTitulo, campoTema, campoDia, campoHora, campoAula;
+    private JTextField campoTitulo, campoTema, campoAula;
+    private JSpinner spinnerDia;
+    private JComboBox<Integer> comboHora;
     private JComboBox<Users> comboEstudiantes;
     private JComboBox<Centro> comboUbicacion;
     private JButton btnCrear, btnVolver;
@@ -38,11 +39,16 @@ public class CrearReuiniones extends JFrame {
         campoTema = new JTextField();
         campoTema.setBounds(297, 72, 257, 39);
 
-        campoDia = new JTextField();
-        campoDia.setBounds(297, 121, 257, 39);
+        // 📅 CALENDARIO
+        spinnerDia = new JSpinner(new SpinnerDateModel());
+        spinnerDia.setBounds(297, 121, 257, 39);
+        JSpinner.DateEditor editor = new JSpinner.DateEditor(spinnerDia, "dd/MM/yyyy");
+        spinnerDia.setEditor(editor);
 
-        campoHora = new JTextField();
-        campoHora.setBounds(297, 170, 257, 39);
+        // ⏰ HORA 1–6
+        comboHora = new JComboBox<>();
+        comboHora.setBounds(297, 170, 257, 39);
+        for (int i = 1; i <= 6; i++) comboHora.addItem(i);
 
         campoAula = new JTextField();
         campoAula.setBounds(297, 219, 257, 39);
@@ -51,17 +57,16 @@ public class CrearReuiniones extends JFrame {
         comboUbicacion = new JComboBox<>();
         comboUbicacion.setBounds(297, 268, 257, 39);
         panel.add(comboUbicacion);
+
         List<Centro> centros = controlador.obtenerCentros();
         for (Centro c : centros) comboUbicacion.addItem(c);
 
-     
         for (Centro c : centros) {
             if (c.getNOM() != null && c.getNOM().equalsIgnoreCase("ELORRIETA-ERREKA MARI")) {
                 comboUbicacion.setSelectedItem(c);
                 break;
             }
         }
-
 
         // Estudiantes
         comboEstudiantes = new JComboBox<>();
@@ -75,11 +80,11 @@ public class CrearReuiniones extends JFrame {
         panel.add(crearLabel("Tema (Descripción):", 30, 72));
         panel.add(campoTema);
 
-        panel.add(crearLabel("Día (dd/MM/yyyy):", 30, 121));
-        panel.add(campoDia);
+        panel.add(crearLabel("Día:", 30, 121));
+        panel.add(spinnerDia);
 
-        panel.add(crearLabel("Hora (HH:mm):", 30, 170));
-        panel.add(campoHora);
+        panel.add(crearLabel("Hora (1–6):", 30, 170));
+        panel.add(comboHora);
 
         panel.add(crearLabel("Aula:", 30, 219));
         panel.add(campoAula);
@@ -115,8 +120,9 @@ public class CrearReuiniones extends JFrame {
 
     public Reuniones construirReunion(Users profesor) {
 
-        if (estaVacio(campoTitulo) || estaVacio(campoTema) || estaVacio(campoDia)
-                || estaVacio(campoHora) || estaVacio(campoAula)) {
+        if (campoTitulo.getText().isBlank() ||
+            campoTema.getText().isBlank() ||
+            campoAula.getText().isBlank()) {
 
             JOptionPane.showMessageDialog(this, "Por favor, completa todos los campos obligatorios.",
                     "Atención", JOptionPane.WARNING_MESSAGE);
@@ -131,30 +137,37 @@ public class CrearReuiniones extends JFrame {
         // CENTRO SELECCIONADO
         Centro centro = (Centro) comboUbicacion.getSelectedItem();
         r.setIdCentro(centro.getCCEN());
-   
-
 
         r.setEstado("Pendiente");
-        r.setUsersByProfesorId(profesor);
-        r.setUsersByAlumnoId((Users) comboEstudiantes.getSelectedItem());
+
+        // PROFESOR → SOLO SU ID
+        r.setIdProfesor(profesor.getId());
+
+        // ALUMNO SELECCIONADO → SOLO SU ID
+        Users alumno = (Users) comboEstudiantes.getSelectedItem();
+        r.setIdAlumno(alumno.getId());
 
         try {
-            String fechaCompleta = campoDia.getText().trim() + " " + campoHora.getText().trim();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            LocalDateTime dateTime = LocalDateTime.parse(fechaCompleta, formatter);
-            r.setFecha(Timestamp.valueOf(dateTime));
+            // Día seleccionado
+            java.util.Date fechaSeleccionada = (java.util.Date) spinnerDia.getValue();
+            LocalDateTime date = fechaSeleccionada.toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime();
+
+            // Hora 1–6
+            int hora = (int) comboHora.getSelectedItem();
+            date = date.withHour(hora).withMinute(0).withSecond(0);
+
+            r.setFecha(Timestamp.valueOf(date));
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
-                    "Formato incorrecto.\nUsa: 26/01/2026 para el día y 14:30 para la hora.",
-                    "Error de Formato", JOptionPane.ERROR_MESSAGE);
+                    "Error al procesar la fecha u hora.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
 
         return r;
-    }
-
-    private boolean estaVacio(JTextField campo) {
-        return campo.getText().strip().isEmpty();
     }
 
     public JButton getBtnCrear() { return btnCrear; }
