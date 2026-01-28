@@ -1,5 +1,6 @@
 package com.example.springBt;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Hibernate;
@@ -20,18 +21,26 @@ public class AlumnoService {
 
 	    try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-	        // Cargar entidad completa del profesor
-	        Users profesor = session.get(Users.class, idProfesor);
-
-	        List<Users> alumnos = session.createQuery(
-	            "SELECT DISTINCT r.usersByAlumnoId FROM Reuniones r WHERE r.usersByProfesorId = :profesor",
-	            Users.class
+	        // 1. Obtener los ciclos que imparte el profesor
+	        List<Integer> ciclosIds = session.createQuery(
+	            "SELECT DISTINCT h.modulos.ciclos.id FROM Horarios h WHERE h.users.id = :idProfesor",
+	            Integer.class
 	        )
-	        .setParameter("profesor", profesor)
+	        .setParameter("idProfesor", idProfesor)
 	        .getResultList();
 
-	        for (Users u : alumnos) {
+	        if (ciclosIds.isEmpty()) return new ArrayList<>();
 
+	        // 2. Buscar alumnos matriculados en esos ciclos
+	        List<Users> alumnos = session.createQuery(
+	            "SELECT DISTINCT m.users FROM Matriculaciones m WHERE m.ciclos.id IN (:ids)",
+	            Users.class
+	        )
+	        .setParameter("ids", ciclosIds)
+	        .getResultList();
+
+	        // 3. Limpiar relaciones peligrosas
+	        for (Users u : alumnos) {
 	            if (u.getTipos() != null) {
 	                Hibernate.initialize(u.getTipos());
 	                u.getTipos().setUserses(null);

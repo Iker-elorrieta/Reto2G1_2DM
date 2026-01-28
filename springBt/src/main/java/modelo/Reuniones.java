@@ -139,4 +139,14 @@ public class Reuniones implements java.io.Serializable {
 		this.updatedAt = updatedAt;
 	}
 
+	public void setIdAlumno(Integer id) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void setIdProfesor(Integer id) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
