@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import controlador.HttpClientHelper;
 
@@ -85,11 +86,13 @@ public class Reuniones implements Serializable {
 
     public static boolean crearReunionREST(Reuniones reunion) {
         try {
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder()
+                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                    .create();
+
             String json = gson.toJson(reunion);
 
-            // Ahora solo pasamos el endpoint
-            String respuesta = HttpClientHelper.postJson("reuniones", json);
+            String respuesta = HttpClientHelper.postJson("reuniones/crear", json);
 
             return Boolean.parseBoolean(respuesta);
 
@@ -98,6 +101,7 @@ public class Reuniones implements Serializable {
             return false;
         }
     }
+
     
     
     public static List<Reuniones> obtenerReunionesProfesorREST(int idProfesor) {
