@@ -1,7 +1,5 @@
 package modelo;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -9,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.gson.Gson;
+
+import controlador.HttpClientHelper;
 
 public class Users implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -176,67 +176,52 @@ public class Users implements Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public static Users obtenerPerfil(DataInputStream entrada, DataOutputStream salida, int idUsuario) {
+
+        // ============================================================
+        // ======================= MÉTODOS REST ========================
+        // ============================================================
+
+
+    public static Users obtenerPerfilREST(int idUsuario) {
         try {
-            salida.writeUTF("GET_PERFIL");
-            salida.writeInt(idUsuario);
-            salida.flush();
+            String json = HttpClientHelper.get("perfil/" + idUsuario);
 
-            String jsonResponse = entrada.readUTF();
-
-            if (jsonResponse != null && !jsonResponse.isEmpty()) {
-                Gson gson = new Gson();
-                return gson.fromJson(jsonResponse, Users.class);
+            if (json != null && !json.isEmpty()) {
+                return new Gson().fromJson(json, Users.class);
             }
-
-            return null;
-
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+        return null;
     }
 
-    public static List<Users> obtenerAlumnos(DataInputStream entrada, DataOutputStream salida, int idProfesor) {
+
+    public static List<Users> obtenerAlumnosREST(int idProfesor) {
         try {
-            salida.writeUTF("GET_ALUMNOS");
-            salida.writeInt(idProfesor);
-            salida.flush();
+            String json = HttpClientHelper.get("profesor/" + idProfesor + "/alumnos");
 
-            String jsonResponse = entrada.readUTF();
-
-            if (jsonResponse != null && !jsonResponse.isEmpty()) {
-                Gson gson = new Gson();
-                Users[] alumnosArray = gson.fromJson(jsonResponse, Users[].class);
-                return Arrays.asList(alumnosArray);
-            }
-
-            return new ArrayList<>();
+            Users[] array = new Gson().fromJson(json, Users[].class);
+            return Arrays.asList(array);
 
         } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
+        public static List<Users> obtenerProfesoresREST() {
+            try {
+                String json = HttpClientHelper.get("profesores");
 
-    public static List<Users> obtenerProfesores(DataInputStream entrada, DataOutputStream salida) {
-        try {
-            salida.writeUTF("GET_PROFESORES");
-            salida.flush();
+                Users[] array = new Gson().fromJson(json, Users[].class);
+                return Arrays.asList(array);
 
-            String jsonResponse = entrada.readUTF();
-
-            if (jsonResponse != null && !jsonResponse.isEmpty()) {
-                Gson gson = new Gson();
-                Users[] profesoresArray = gson.fromJson(jsonResponse, Users[].class);
-                return Arrays.asList(profesoresArray);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new ArrayList<>();
             }
-
-            return new ArrayList<>();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
         }
+
+     
     }
-}
+
+
