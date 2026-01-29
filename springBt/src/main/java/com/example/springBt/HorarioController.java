@@ -1,4 +1,4 @@
-	package com.example.springBt;
+package com.example.springBt;
 
 import modelo.Horarios;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +14,12 @@ public class HorarioController {
     @Autowired
     private HorarioService horarioService;
 
-    @GetMapping("{idProfesor}")
-    public ResponseEntity<List<Horarios>> obtenerHorario(@PathVariable (name = "idProfesor") int idProfesor) {
+    @GetMapping("/{idProfesor}")
+    public ResponseEntity<List<Horarios>> obtenerHorario(
+            @PathVariable("idProfesor") int idProfesor) {
 
         List<Horarios> horario = horarioService.obtenerHorarioProfesor(idProfesor);
-
         return ResponseEntity.ok(horario);
     }
+
 }
