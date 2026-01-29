@@ -6,12 +6,14 @@
             <column name="id_reunion"/>
             <generator class="identity"/>
         </id>
-        <many-to-one class="modelo.Users" fetch="select" name="usersByAlumnoId">
-            <column name="alumno_id"/>
-        </many-to-one>
-        <many-to-one class="modelo.Users" fetch="select" name="usersByProfesorId">
-            <column name="profesor_id"/>
-        </many-to-one>
+   <many-to-one name="alumno" class="modelo.Users" fetch="select">
+    <column name="alumno_id"/>
+</many-to-one>
+
+<many-to-one name="profesor" class="modelo.Users" fetch="select">
+    <column name="profesor_id"/>
+</many-to-one>
+
         <property name="estado" type="string">
             <column length="10" name="estado"/>
         </property>

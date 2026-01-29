@@ -15,52 +15,51 @@ import org.springframework.web.bind.annotation.RestController;
 
 import modelo.Reuniones;
 
-@RestController 
+@RestController
 @RequestMapping("/api/reuniones")
 public class ReuinionesContrl {
-	    @Autowired
-	    private ReunionesService reunionService;
 
-	    @PostMapping("/crear")
-	    public ResponseEntity<Boolean> crearReunion(@RequestBody Reuniones reunion) {
-	        boolean creada = reunionService.crearReunion(reunion);
-	        return ResponseEntity.ok(creada);
-	    }
-	
-	    
-	    @GetMapping("/reuniones/profesor/{idProfesor}")
-	    public List<Reuniones> getReunionesProfesor(@PathVariable int idProfesor) {
+    @Autowired
+    private ReunionesService reunionService;
 
-	        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+    @PostMapping("/crear")
+    public ResponseEntity<Boolean> crearReunion(@RequestBody Reuniones reunion) {
+        boolean creada = reunionService.crearReunion(reunion);
+        return ResponseEntity.ok(creada);
+    }
 
-	            List<modelo.Reuniones> lista = session.createQuery(
-	                "SELECT r FROM Reuniones r WHERE r.usersByProfesorId.id = :idProfesor",
-	                modelo.Reuniones.class
-	            )
-	            .setParameter("idProfesor", idProfesor)
-	            .getResultList();
+    @GetMapping("/profesor/{idProfesor}")
+    public List<Reuniones> getReunionesProfesor(@PathVariable int idProfesor) {
 
-	            List<Reuniones> resultado = new ArrayList<>();
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-	            for (modelo.Reuniones r : lista) {
-	                Reuniones plano = new Reuniones();
-	                plano.setIdReunion(r.getIdReunion());
-	                plano.setIdAlumno(r.getUsersByAlumnoId().getId());
-	                plano.setIdProfesor(r.getUsersByProfesorId().getId());
-	                plano.setEstado(r.getEstado());
-	                plano.setEstadoEus(r.getEstadoEus());
-	                plano.setIdCentro(r.getIdCentro());
-	                plano.setTitulo(r.getTitulo());
-	                plano.setAsunto(r.getAsunto());
-	                plano.setAula(r.getAula());
-	                plano.setFecha(r.getFecha());
-	                resultado.add(plano);
-	            }
+            List<modelo.Reuniones> lista = session.createQuery(
+                "SELECT r FROM Reuniones r WHERE r.profesor.id = :idProfesor",
+                modelo.Reuniones.class
+            )
+            .setParameter("idProfesor", idProfesor)
+            .getResultList();
 
-	            return resultado;
-	        }
-	    }
+            List<Reuniones> resultado = new ArrayList<>();
 
+            for (modelo.Reuniones r : lista) {
 
-	
+                Reuniones plano = new Reuniones();
+                plano.setIdReunion(r.getIdReunion());
+                plano.setIdAlumno(r.getAlumno().getId());
+                plano.setIdProfesor(r.getProfesor().getId());
+                plano.setEstado(r.getEstado());
+                plano.setEstadoEus(r.getEstadoEus());
+                plano.setIdCentro(r.getIdCentro());
+                plano.setTitulo(r.getTitulo());
+                plano.setAsunto(r.getAsunto());
+                plano.setAula(r.getAula());
+                plano.setFecha(r.getFecha());
+
+                resultado.add(plano);
+            }
+
+            return resultado;
+        }
+    }
 }

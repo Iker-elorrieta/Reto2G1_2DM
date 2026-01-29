@@ -197,20 +197,23 @@ public class HiloServidor extends Thread {
 
                         // ================= GET_REUNIONES (pendiente) =================
                         case "GET_REUNIONES": {
-                             int idProfesor = entrada.readInt();
-                             List<Reuniones> reuniones = reunionService.getReunionesProfesor(idProfesor);
-                             if (reuniones != null) {
-                                 for (Reuniones r : reuniones) {
-                                    limpiarUsuario(r.getUsersByAlumnoId());
-                                     limpiarUsuario(r.getUsersByProfesorId());
-                               }
+                            int idProfesor = entrada.readInt();
+                            List<Reuniones> reuniones = reunionService.obtenerReunionesProfesor(idProfesor);
+
+                            if (reuniones != null) {
+                                for (Reuniones r : reuniones) {
+                                    limpiarUsuario(r.getAlumno());
+                                    limpiarUsuario(r.getProfesor());
+                                }
                             }
-                             String json = gson.toJson(reuniones);
+
+                            String json = gson.toJson(reuniones);
                             byte[] data = json.getBytes("UTF-8");
                             salida.writeInt(data.length);
-                             salida.write(data);
+                            salida.write(data);
                             break;
                         }
+
 
                         // ================= DESCONOCIDO =================
                         default:

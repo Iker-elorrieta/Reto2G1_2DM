@@ -1,6 +1,6 @@
 package com.example.springBt;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 import org.hibernate.Hibernate;
@@ -21,26 +21,21 @@ public class AlumnoService {
 
 	    try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-	        // 1. Obtener los ciclos que imparte el profesor
-	        List<Integer> ciclosIds = session.createQuery(
-	            "SELECT DISTINCT h.modulos.ciclos.id FROM Horarios h WHERE h.users.id = :idProfesor",
-	            Integer.class
+	        List<Users> alumnos = session.createQuery(
+	            "SELECT DISTINCT m.users " +
+	            "FROM Horarios h " +
+	            "JOIN h.modulos mod " +
+	            "JOIN mod.ciclos c " +
+	            "JOIN Matriculaciones m ON m.ciclos.id = c.id " +
+	            "WHERE h.users.id = :idProfesor",
+	            Users.class
 	        )
 	        .setParameter("idProfesor", idProfesor)
 	        .getResultList();
 
-	        if (ciclosIds.isEmpty()) return new ArrayList<>();
-
-	        // 2. Buscar alumnos matriculados en esos ciclos
-	        List<Users> alumnos = session.createQuery(
-	            "SELECT DISTINCT m.users FROM Matriculaciones m WHERE m.ciclos.id IN (:ids)",
-	            Users.class
-	        )
-	        .setParameter("ids", ciclosIds)
-	        .getResultList();
-
-	        // 3. Limpiar relaciones peligrosas
+	        // Limpiar relaciones peligrosas
 	        for (Users u : alumnos) {
+
 	            if (u.getTipos() != null) {
 	                Hibernate.initialize(u.getTipos());
 	                u.getTipos().setUserses(null);
@@ -55,6 +50,7 @@ public class AlumnoService {
 	        return alumnos;
 	    }
 	}
+
 
 	@GetMapping("/profesores")
 	public List<Users> getProfesores() {
