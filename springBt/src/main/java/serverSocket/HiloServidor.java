@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.net.Socket;
 import java.util.List;
 
-import org.hibernate.Hibernate;
 
 import com.example.springBt.PerfilController;
 import com.google.gson.Gson;
@@ -93,9 +92,7 @@ public class HiloServidor extends Thread {
                             int idUsuario = entrada.readInt();
 
                             Users user = perfilService.getPerfil(idUsuario);
-                            if (user != null) {
-                                limpiarUsuario(user);
-                            }
+                      
                             String jsonResponse = (user != null) ? gson.toJson(user) : "";
 
                             salida.writeUTF(jsonResponse);
@@ -110,9 +107,7 @@ public class HiloServidor extends Thread {
                             int idProfesor = entrada.readInt();
 
                             List<Users> alumnos = perfilService.getAlumnosDelProfesor(idProfesor);
-                            if (alumnos != null) {
-                                alumnos.forEach(this::limpiarUsuario);
-                            }
+             
                             String jsonResponse = gson.toJson(alumnos);
 
                             salida.writeUTF(jsonResponse);
@@ -127,11 +122,7 @@ public class HiloServidor extends Thread {
 	                            int idProfesor = entrada.readInt();
 	
 	                            List<Horarios> horarios = Horarios.obtenerHorarioProfesor(idProfesor);
-	                            if (horarios != null) {
-	                                for (Horarios h : horarios) {
-	                                    limpiarUsuario(h.getUsers());
-	                                }
-	                            }
+	                      
 	                            String jsonResponse = gson.toJson(horarios);
 	
 	                            salida.writeUTF(jsonResponse);
@@ -145,9 +136,7 @@ public class HiloServidor extends Thread {
                         // ================= GET_PROFESORES =================
                         case "GET_PROFESORES": {
                             List<Users> profesores = perfilService.getProfesores();
-                            if (profesores != null) {
-                                profesores.forEach(this::limpiarUsuario);
-                            }
+                    
                             String jsonResponse = gson.toJson(profesores);
 
                             salida.writeUTF(jsonResponse);
@@ -173,7 +162,7 @@ public class HiloServidor extends Thread {
 
                         // ================= GET_CENTROS =================
                         case "GET_CENTROS": {
-                            List<Centro> centros = Centro.obtenerTodosCentros();
+                            List<Centro> centros = Centro.obtenerCentros();
                             String jsonResponse = gson.toJson(centros);
 
                             byte[] data = jsonResponse.getBytes("UTF-8");
@@ -190,12 +179,7 @@ public class HiloServidor extends Thread {
                             int idProfesor = entrada.readInt();
                             List<Reuniones> reuniones = Reuniones.obtenerReunionesProfesor(idProfesor);
 
-                            if (reuniones != null) {
-                                for (Reuniones r : reuniones) {
-                                    limpiarUsuario(r.getAlumno());
-                                    limpiarUsuario(r.getProfesor());
-                                }
-                            }
+                         
 
                             String json = gson.toJson(reuniones);
                             byte[] data = json.getBytes("UTF-8");
@@ -231,17 +215,5 @@ public class HiloServidor extends Thread {
         }
     }
 
-    private void limpiarUsuario(Users u) {
-        if (u == null) return;
 
-        if (u.getTipos() != null) {
-            Hibernate.initialize(u.getTipos());
-            u.getTipos().setUserses(null);
-        }
-
-        u.setMatriculacioneses(null);
-        u.setReunionesesForAlumnoId(null);
-        u.setReunionesesForProfesorId(null);
-        u.setHorarioses(null);
-    }
 }

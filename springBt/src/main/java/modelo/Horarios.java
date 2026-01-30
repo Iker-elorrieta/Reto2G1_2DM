@@ -5,7 +5,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
 
 import com.example.springBt.HibernateUtil;
@@ -35,17 +34,18 @@ public class Horarios implements java.io.Serializable {
 	public Horarios() {
 	}
 
+	public Horarios(modelo.Horarios h) {
+		this.dia = h.getDia();
+		this.hora = h.getHora();
+		this.aula = h.getAula();
+		this.observaciones = h.getObservaciones();
+		this.nombreModulo = (h.getModulos() != null) ? h.getModulos().getNombre() : null;
+		this.users = new Users(h.getUsers());
+		this.modulos = new Modulos(h.getModulos());
+		this.createdAt = h.getCreatedAt();
+		this.updatedAt = h.getUpdatedAt();
 
-	    public Horarios(modelo.Horarios h) {
-	        this.dia = h.getDia();
-	        this.hora = h.getHora();
-	        this.aula = h.getAula();
-	        this.observaciones = h.getObservaciones();
-	        this.nombreModulo = (h.getModulos() != null) ? h.getModulos().getNombre() : null;
-
-	    }
-
-	    
+	}
 
 	public Horarios(Users users, Modulos modulos, String dia, byte hora) {
 		this.users = users;
@@ -64,7 +64,7 @@ public class Horarios implements java.io.Serializable {
 		this.observaciones = observaciones;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
-		
+
 	}
 
 	public Integer getId() {
@@ -74,6 +74,7 @@ public class Horarios implements java.io.Serializable {
 	public void setId(Integer id) {
 		this.id = id;
 	}
+
 	@JsonIgnore
 	public Users getUsers() {
 		return this.users;
@@ -82,6 +83,7 @@ public class Horarios implements java.io.Serializable {
 	public void setUsers(Users users) {
 		this.users = users;
 	}
+
 	@JsonIgnore
 	public Modulos getModulos() {
 		return this.modulos;
@@ -146,31 +148,18 @@ public class Horarios implements java.io.Serializable {
 	public void setNombreModulo(String nombreModulo) {
 		this.nombreModulo = nombreModulo;
 	}
-	
+
 	@JsonIgnore
-    public static List<Horarios>  obtenerHorarioProfesor(Integer idProfesor) {
-        List<Horarios> resultado = new ArrayList<>();
+	public static List<Horarios> obtenerHorarioProfesor(Integer idProfesor) {
+		List<Horarios> resultado = new ArrayList<>();
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			final Users profesor = session.get(Users.class, idProfesor);
+			resultado = session.createQuery("SELECT h FROM Horarios h WHERE h.users = :profesor ORDER BY h.dia, h.hora",
+					Horarios.class).setParameter("profesor", profesor).getResultList();
 
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-
-            final Users profesor = session.get(Users.class, idProfesor);
-
-            List<modelo.Horarios> lista = session.createQuery(
-                "SELECT h FROM Horarios h WHERE h.users = :profesor ORDER BY h.dia, h.hora",
-                modelo.Horarios.class)
-            .setParameter("profesor", profesor)
-            .getResultList();
-
-            for (modelo.Horarios h : lista) {
-
-                Hibernate.initialize(h.getModulos());
-
-                Horarios plano = new Horarios(h);
-                resultado.add(plano);
-            }
-        }
-
-        return resultado;
-    }
+		}
+		resultado.replaceAll(h -> new Horarios(h));
+		return resultado;
+	}
 
 }

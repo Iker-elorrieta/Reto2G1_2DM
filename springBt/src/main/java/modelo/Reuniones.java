@@ -2,7 +2,6 @@ package modelo;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.JoinColumn;
@@ -16,214 +15,210 @@ import com.example.springBt.HibernateUtil;
 
 public class Reuniones implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private Integer idReunion;
-    @Transient
-    private Integer idAlumno;
+	private Integer idReunion;
+	@Transient
+	private Integer idAlumno;
 
-    @Transient
-    private Integer idProfesor;
-    @ManyToOne
-    @JoinColumn(name = "id_profesor")
-    private Users profesor;
+	@Transient
+	private Integer idProfesor;
+	@ManyToOne
+	@JoinColumn(name = "id_profesor")
+	private Users profesor;
 
-    @ManyToOne
-    @JoinColumn(name = "id_alumno")
-    private Users alumno;
+	@ManyToOne
+	@JoinColumn(name = "id_alumno")
+	private Users alumno;
 
-    private String estado;
-    private String estadoEus;
-    private String idCentro;
-    private String titulo;
-    private String asunto;
-    private String aula;
-    private Timestamp fecha;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+	private String estado;
+	private String estadoEus;
+	private String idCentro;
+	private String titulo;
+	private String asunto;
+	private String aula;
+	private Timestamp fecha;
+	private Timestamp createdAt;
+	private Timestamp updatedAt;
 
-    public Reuniones() {}
+	public Reuniones() {
+	}
 
-    public Integer getIdReunion() {
-        return idReunion;
-    }
+	public Reuniones(Reuniones r) {
+		this.idReunion = r.getIdReunion();
+		this.idAlumno = (r.getAlumno() != null) ? r.getAlumno().getId() : null;
+		this.idProfesor = (r.getProfesor() != null) ? r.getProfesor().getId() : null;
+		this.estado = r.getEstado();
+		this.estadoEus = r.getEstadoEus();
+		this.idCentro = r.getIdCentro();
+		this.titulo = r.getTitulo();
+		this.asunto = r.getAsunto();
+		this.aula = r.getAula();
+		this.fecha = r.getFecha();
+		this.alumno = new Users(r.getAlumno());
+		this.profesor = new Users(r.getProfesor());
+		this.createdAt = r.getCreatedAt();
+		this.updatedAt = r.getUpdatedAt();
+	}
 
-    public void setIdReunion(Integer idReunion) {
-        this.idReunion = idReunion;
-    }
+	public Integer getIdReunion() {
+		return idReunion;
+	}
 
-    public Users getProfesor() {
-        return profesor;
-    }
+	public void setIdReunion(Integer idReunion) {
+		this.idReunion = idReunion;
+	}
 
-    public void setProfesor(Users profesor) {
-        this.profesor = profesor;
-    }
+	public Users getProfesor() {
+		return profesor;
+	}
 
-    public Users getAlumno() {
-        return alumno;
-    }
+	public void setProfesor(Users profesor) {
+		this.profesor = profesor;
+	}
 
-    public void setAlumno(Users alumno) {
-        this.alumno = alumno;
-    }
+	public Users getAlumno() {
+		return alumno;
+	}
 
-    public String getEstado() {
-        return estado;
-    }
+	public void setAlumno(Users alumno) {
+		this.alumno = alumno;
+	}
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
+	public String getEstado() {
+		return estado;
+	}
 
-    public String getEstadoEus() {
-        return estadoEus;
-    }
+	public void setEstado(String estado) {
+		this.estado = estado;
+	}
 
-    public void setEstadoEus(String estadoEus) {
-        this.estadoEus = estadoEus;
-    }
+	public String getEstadoEus() {
+		return estadoEus;
+	}
 
-    public String getIdCentro() {
-        return idCentro;
-    }
+	public void setEstadoEus(String estadoEus) {
+		this.estadoEus = estadoEus;
+	}
 
-    public void setIdCentro(String idCentro) {
-        this.idCentro = idCentro;
-    }
+	public String getIdCentro() {
+		return idCentro;
+	}
 
-    public String getTitulo() {
-        return titulo;
-    }
+	public void setIdCentro(String idCentro) {
+		this.idCentro = idCentro;
+	}
 
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
+	public String getTitulo() {
+		return titulo;
+	}
 
-    public String getAsunto() {
-        return asunto;
-    }
+	public void setTitulo(String titulo) {
+		this.titulo = titulo;
+	}
 
-    public void setAsunto(String asunto) {
-        this.asunto = asunto;
-    }
+	public String getAsunto() {
+		return asunto;
+	}
 
-    public String getAula() {
-        return aula;
-    }
+	public void setAsunto(String asunto) {
+		this.asunto = asunto;
+	}
 
-    public void setAula(String aula) {
-        this.aula = aula;
-    }
+	public String getAula() {
+		return aula;
+	}
 
-    public Timestamp getFecha() {
-        return fecha;
-    }
+	public void setAula(String aula) {
+		this.aula = aula;
+	}
 
-    public void setFecha(Timestamp fecha) {
-        this.fecha = fecha;
-    }
+	public Timestamp getFecha() {
+		return fecha;
+	}
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
+	public void setFecha(Timestamp fecha) {
+		this.fecha = fecha;
+	}
 
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
+	public Timestamp getCreatedAt() {
+		return createdAt;
+	}
 
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
+	public void setCreatedAt(Timestamp createdAt) {
+		this.createdAt = createdAt;
+	}
 
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+	public Timestamp getUpdatedAt() {
+		return updatedAt;
+	}
 
-    public Integer getIdAlumno() {
-        return idAlumno;
-    }
+	public void setUpdatedAt(Timestamp updatedAt) {
+		this.updatedAt = updatedAt;
+	}
 
-    public void setIdAlumno(Integer idAlumno) {
-        this.idAlumno = idAlumno;
-    }
+	public Integer getIdAlumno() {
+		return idAlumno;
+	}
 
-    public Integer getIdProfesor() {
-        return idProfesor;
-    }
+	public void setIdAlumno(Integer idAlumno) {
+		this.idAlumno = idAlumno;
+	}
 
-    public void setIdProfesor(Integer idProfesor) {
-        this.idProfesor = idProfesor;
-    }
-    
-    // Crear reunión
-    public boolean crearReunion() {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
+	public Integer getIdProfesor() {
+		return idProfesor;
+	}
 
-            Users alumno = session.get(Users.class, getIdAlumno());
-            Users profesor = session.get(Users.class, getIdProfesor());
-          
+	public void setIdProfesor(Integer idProfesor) {
+		this.idProfesor = idProfesor;
+	}
 
-            setAlumno(alumno);
-            setProfesor(profesor);
-     
+	// Crear reunión
+	public boolean crearReunion() {
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			Transaction tx = session.beginTransaction();
 
+			Users alumno = session.get(Users.class, getIdAlumno());
+			Users profesor = session.get(Users.class, getIdProfesor());
 
-            if (alumno == null || profesor == null) {
-                throw new RuntimeException("Alumno o profesor no existe");
-            }
+			setAlumno(alumno);
+			setProfesor(profesor);
 
-            setAlumno(alumno);
-            setProfesor(profesor);
+			if (alumno == null || profesor == null) {
+				throw new RuntimeException("Alumno o profesor no existe");
+			}
 
-            // 🔹 Timestamps
-            Timestamp ahora = new Timestamp(System.currentTimeMillis());
-            setCreatedAt(ahora);
-            setUpdatedAt(ahora);
+			setAlumno(alumno);
+			setProfesor(profesor);
 
-            // 🔹 Persistir
-            session.persist(this);
-            tx.commit();
-            return true;
+			// 🔹 Timestamps
+			Timestamp ahora = new Timestamp(System.currentTimeMillis());
+			setCreatedAt(ahora);
+			setUpdatedAt(ahora);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+			// 🔹 Persistir
+			session.persist(this);
+			tx.commit();
+			return true;
 
-    // Servicio para obtener reuniones de un profesor
-    public static List<Reuniones> obtenerReunionesProfesor(int idProfesor) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 
-            List<modelo.Reuniones> lista = session.createQuery(
-                    "SELECT r FROM Reuniones r WHERE r.profesor.id = :idProfesor",
-                    modelo.Reuniones.class
-            )
-            .setParameter("idProfesor", idProfesor)
-            .getResultList();
+	// Servicio para obtener reuniones de un profesor
+	public static List<Reuniones> obtenerReunionesProfesor(int idProfesor) {
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			Users user = session.get(Users.class, idProfesor);
 
-            List<Reuniones> resultado = new ArrayList<>();
+			List<Reuniones> lista = session
+					.createQuery("SELECT r FROM Reuniones r WHERE r.profesor = :Profesor", modelo.Reuniones.class)
+					.setParameter("Profesor", user).getResultList();
 
-            // Convertimos a DTO con solo IDs
-            for (modelo.Reuniones r : lista) {
-                Reuniones plano = new Reuniones();
-                plano.setIdReunion(r.getIdReunion());
-                plano.setIdAlumno(r.getAlumno().getId());
-                plano.setIdProfesor(r.getProfesor().getId());
-                plano.setEstado(r.getEstado());
-                plano.setEstadoEus(r.getEstadoEus());
-                plano.setIdCentro(r.getIdCentro());
-                plano.setTitulo(r.getTitulo());
-                plano.setAsunto(r.getAsunto());
-                plano.setAula(r.getAula());
-                plano.setFecha(r.getFecha());
-                resultado.add(plano);
-            }
-
-            return resultado;
-        }
-    }
+			lista.replaceAll(r -> new Reuniones(r));
+			return lista;
+		}
+	}
 
 }

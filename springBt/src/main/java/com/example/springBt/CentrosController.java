@@ -18,7 +18,7 @@ public class CentrosController {
      */
     @GetMapping
     public ResponseEntity<List<Centro>> obtenerTodosCentros() {
-        List<Centro> centros = Centro.obtenerTodosCentros();
+        List<Centro> centros = Centro.obtenerCentros();
         return ResponseEntity.ok(centros);
     }
 

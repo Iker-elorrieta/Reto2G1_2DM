@@ -3,6 +3,7 @@ package modelo;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.hibernate.Session;
@@ -43,6 +44,23 @@ public class Users implements java.io.Serializable {
 	private Set<Reuniones> reunionesesForProfesorId = new HashSet<>();
 
 	public Users() {
+	}
+	
+	public Users(Users u) {
+		this.id = u.getId();
+		this.tipos = u.getTipos();
+		this.email = u.getEmail();
+		this.username = u.getUsername();
+		this.password = u.getPassword();
+		this.nombre = u.getNombre();
+		this.apellidos = u.getApellidos();
+		this.dni = u.getDni();
+		this.direccion = u.getDireccion();
+		this.telefono1 = u.getTelefono1();
+		this.telefono2 = u.getTelefono2();
+		this.argazkiaUrl = u.getArgazkiaUrl();
+		this.createdAt = u.getCreatedAt();
+		this.updatedAt = u.getUpdatedAt();
 	}
 
 	public Users(Tipos tipos, String email, String username, String password) {
@@ -236,4 +254,37 @@ public class Users implements java.io.Serializable {
 		}
 	}
 
+	public static Users getPerfil(int id) {
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			Users user = session.get(Users.class, id);
+			if (user == null) {
+				return null;
+			}
+			user.getTipos();
+			return user;
+		}
+	}
+
+	public static List<Users> getAlumnosDelProfesor(int idProfesor) {
+		
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			Users user = session.get(Users.class, idProfesor);
+			List<Users> alumnos = session.createQuery(
+					"SELECT DISTINCT m.users " + "FROM Horarios h " + "JOIN h.modulos mod " + "JOIN mod.ciclos c "
+							+ "JOIN Matriculaciones m ON m.ciclos = c " + "WHERE h.users = :prof",
+					Users.class).setParameter("prof", user).getResultList();
+			alumnos.replaceAll( u -> new Users(u));
+			return alumnos;
+		}
+	}
+	@JsonIgnore
+	public static List<Users> getProfesores() {
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			Tipos tipoProfesor = session.get(Tipos.class, 3);
+			List<Users> profesores = session.createQuery("FROM Users u WHERE u.tipos = :tipoProfesor", Users.class)
+					.setParameter("tipoProfesor", tipoProfesor).list();
+			profesores.replaceAll( u -> new Users(u));
+			return profesores;
+		}
+	}
 }

@@ -364,7 +364,7 @@ public class Centro {
      * Obtiene todos los centros
      * @return Lista de todos los centros
      */
-    public static List<Centro> obtenerTodosCentros() {
+    public static List<Centro> obtenerCentros() {
         return centros;
     }
 
