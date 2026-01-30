@@ -1,6 +1,8 @@
 package com.example.springBt;
 
 import modelo.Horarios;
+import modelo.Users;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,12 +13,22 @@ import java.util.List;
 public class HorarioController {
 
 
-    @GetMapping("/{idProfesor}")
-    public ResponseEntity<List<Horarios>> obtenerHorario(
-            @PathVariable("idProfesor") int idProfesor) {
+    @GetMapping("")
+    public ResponseEntity<List<Horarios>> getAllHorarios() {
+        List<Horarios> horarios = Horarios.obtenerTodosHorarios();
+        return ResponseEntity.ok(horarios);
+    }
 
-        List<Horarios> horario = Horarios.obtenerHorarioProfesor(idProfesor);
-        return ResponseEntity.ok(horario);
+    @GetMapping("{idUsuario}")
+    public ResponseEntity<List<Horarios>> getHorarioByUsuario(@PathVariable("idUsuario") int idUsuario) {
+        String tipo = Users.getTipoUser(idUsuario);
+        List<Horarios> horarios;
+        if ("Profesor".equalsIgnoreCase(tipo)) {
+            horarios = Horarios.obtenerHorarioProfesor(idUsuario);
+        } else {
+            horarios = Horarios.obtenerHorarioAlumno(idUsuario);
+        }
+        return ResponseEntity.ok(horarios);
     }
 
 }

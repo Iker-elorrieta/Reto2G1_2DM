@@ -39,9 +39,11 @@ public class Horarios implements java.io.Serializable {
 		this.hora = h.getHora();
 		this.aula = h.getAula();
 		this.observaciones = h.getObservaciones();
-		this.nombreModulo = (h.getModulos() != null) ? h.getModulos().getNombre() : null;
-		this.users = new Users(h.getUsers());
+		if (h.getUsers() != null) {
+			this.users = new Users(h.getUsers());
+		}
 		this.modulos = new Modulos(h.getModulos());
+		this.nombreModulo = (h.getModulos() != null) ? h.getModulos().getNombre() : null;
 		this.createdAt = h.getCreatedAt();
 		this.updatedAt = h.getUpdatedAt();
 
@@ -156,10 +158,49 @@ public class Horarios implements java.io.Serializable {
 			final Users profesor = session.get(Users.class, idProfesor);
 			resultado = session.createQuery("SELECT h FROM Horarios h WHERE h.users = :profesor ORDER BY h.dia, h.hora",
 					Horarios.class).setParameter("profesor", profesor).getResultList();
-
+			resultado.replaceAll(h -> new Horarios(h));
 		}
-		resultado.replaceAll(h -> new Horarios(h));
 		return resultado;
 	}
+
+	@JsonIgnore
+	public static List<Horarios> obtenerTodosHorarios() {
+		List<Horarios> resultado = new ArrayList<>();
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			resultado = session.createQuery("SELECT h FROM Horarios h ORDER BY h.dia, h.hora", Horarios.class).getResultList();
+			resultado.replaceAll(h -> new Horarios(h));
+		}
+		return resultado;
+	}
+
+	@JsonIgnore
+	public static List<Horarios> obtenerHorarioAlumno(Integer idAlumno) {
+		List<Horarios> resultado = new ArrayList<>();
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			Users alumno = session.get(Users.class, idAlumno);
+			resultado = session.createQuery(
+				"SELECT h FROM Horarios h " +
+				"JOIN h.modulos m " +
+				"JOIN m.ciclos c " +
+				"JOIN Matriculaciones mat ON mat.ciclos = c " +
+				"WHERE mat.users = :Alumno " +
+				"ORDER BY h.dia, h.hora",
+				Horarios.class
+			).setParameter("Alumno", alumno).getResultList();
+			resultado.replaceAll(h -> new Horarios(h));
+		}
+		return resultado;
+	}
+
+	@JsonIgnore
+	public static int obtenerTipoUsuario(int idUsuario) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Users user = session.get(Users.class, idUsuario);
+            if (user != null && user.getTipos() != null && user.getTipos().getId() != null) {
+                return user.getTipos().getId();
+            }
+        }
+        return -1; // tipo desconocido
+    }
 
 }

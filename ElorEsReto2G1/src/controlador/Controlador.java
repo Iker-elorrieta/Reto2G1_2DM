@@ -4,6 +4,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -152,15 +153,22 @@ public class Controlador {
         vistaPerfil.setVisible(true);
     }
 
+    private DefaultListModel<String> crearModeloListaAlumnos(List<Users> alumnos) {
+        DefaultListModel<String> modeloLista = new DefaultListModel<>();
+        for (Users alumno : alumnos) {
+            modeloLista.addElement(alumno.getId() + " - " + alumno.getNombre() + " " + alumno.getApellidos());
+        }
+        return modeloLista;
+    }
+
     private void mostrarAlumnos() {
         List<Users> listadoAlumnos = Users.obtenerAlumnosREST(idUsuario);
-
         if (listadoAlumnos == null || listadoAlumnos.isEmpty()) {
             vistaMenu.mostrarMensajeError("No se encontraron alumnos.");
             return;
         }
-
-        Alumnos vistaAlumnos = new Alumnos(listadoAlumnos);
+        DefaultListModel<String> modeloLista = crearModeloListaAlumnos(listadoAlumnos);
+        Alumnos vistaAlumnos = new Alumnos(listadoAlumnos, modeloLista);
         vistaAlumnos.getBtnVolver().addActionListener(evento -> {
             vistaAlumnos.dispose();
             vistaMenu.setVisible(true);
@@ -171,7 +179,6 @@ public class Controlador {
                 mostrarPerfil(alumnoSeleccionado, vistaAlumnos);
             }
         });
-
         vistaMenu.setVisible(false);
         vistaAlumnos.setVisible(true);
     }

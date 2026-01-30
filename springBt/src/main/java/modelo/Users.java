@@ -47,21 +47,23 @@ public class Users implements java.io.Serializable {
 	}
 	
 	public Users(Users u) {
-		this.id = u.getId();
-		this.tipos = u.getTipos();
-		this.email = u.getEmail();
-		this.username = u.getUsername();
-		this.password = u.getPassword();
-		this.nombre = u.getNombre();
-		this.apellidos = u.getApellidos();
-		this.dni = u.getDni();
-		this.direccion = u.getDireccion();
-		this.telefono1 = u.getTelefono1();
-		this.telefono2 = u.getTelefono2();
-		this.argazkiaUrl = u.getArgazkiaUrl();
-		this.createdAt = u.getCreatedAt();
-		this.updatedAt = u.getUpdatedAt();
-	}
+        this.id = u.getId();
+        if (u.getTipos() != null) {
+            this.tipos = new Tipos(u.getTipos().getId(), u.getTipos().getName(), u.getTipos().getNameEu());
+        }
+        this.email = u.getEmail();
+        this.username = u.getUsername();
+        this.password = u.getPassword();
+        this.nombre = u.getNombre();
+        this.apellidos = u.getApellidos();
+        this.dni = u.getDni();
+        this.direccion = u.getDireccion();
+        this.telefono1 = u.getTelefono1();
+        this.telefono2 = u.getTelefono2();
+        this.argazkiaUrl = u.getArgazkiaUrl();
+        this.createdAt = u.getCreatedAt();
+        this.updatedAt = u.getUpdatedAt();
+    }
 
 	public Users(Tipos tipos, String email, String username, String password) {
 		this.tipos = tipos;
@@ -260,8 +262,7 @@ public class Users implements java.io.Serializable {
 			if (user == null) {
 				return null;
 			}
-			user.getTipos();
-			return user;
+			return new Users(user);
 		}
 	}
 
@@ -287,4 +288,13 @@ public class Users implements java.io.Serializable {
 			return profesores;
 		}
 	}
+    public static String getTipoUser(int idUsuario) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Users user = session.get(Users.class, idUsuario);
+            if (user != null && user.getTipos() != null && user.getTipos().getName() != null) {
+                return user.getTipos().getName();
+            }
+        }
+        return null;
+    }
 }

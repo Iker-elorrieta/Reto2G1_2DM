@@ -24,6 +24,15 @@ private Set<Users> userses = new HashSet<>();
 public Tipos() {
 }
 
+
+public Tipos(Integer id, String name, String nameEu) {
+	super();
+	this.id = id;
+	this.name = name;
+	this.nameEu = nameEu;
+}
+
+
 public Tipos(String name) {
 this.name = name;
 }
