@@ -2,7 +2,6 @@ package vista;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -12,17 +11,15 @@ import javax.swing.JOptionPane;
 
 import modelo.Users;
 
-public class OtrsHorarios extends JFrame {
+public class OtrosHorarios extends JFrame {
 
     private static final long serialVersionUID = 1L;
-    private final List<Users> profesores;
+    private java.util.List<Users> profesores;
     private final JComboBox<String> comboProfesores;
     private JButton btnVerHorario;
     private JButton btnVolver;
 
-    public OtrsHorarios(List<Users> profesores) {
-    	this.profesores = profesores;
-
+    public OtrosHorarios() {
         setTitle("Consultar Horarios de Otros Profesores");
         setSize(500, 300);
         setLocationRelativeTo(null);
@@ -38,10 +35,6 @@ public class OtrsHorarios extends JFrame {
         comboProfesores.setBounds(30, 70, 420, 30);
         comboProfesores.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         add(comboProfesores);
-
-        for (Users docente : profesores) {
-            comboProfesores.addItem(docente.getNombre() + " " + docente.getApellidos());
-        }
 
         btnVerHorario = new JButton("Ver horario");
         btnVerHorario.setBounds(150, 130, 180, 40);
@@ -66,7 +59,16 @@ public class OtrsHorarios extends JFrame {
             JOptionPane.showMessageDialog(this, "Selecciona un profesor.");
             return null;
         }
-        return profesores.get(indiceSeleccionado);
+        return (profesores != null && indiceSeleccionado < profesores.size()) ? profesores.get(indiceSeleccionado) : null;
+    }
+
+    public void setProfesores(java.util.List<Users> profesores) {
+        this.profesores = profesores;
+        comboProfesores.removeAllItems();
+        if (profesores == null) return;
+        for (Users docente : profesores) {
+            comboProfesores.addItem(docente.getNombre() + " " + docente.getApellidos());
+        }
     }
 
     public JButton getBtnVerHorario() {

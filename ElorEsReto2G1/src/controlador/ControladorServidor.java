@@ -3,101 +3,192 @@ package controlador;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import modelo.Reuniones;
 
 public class ControladorServidor {
 
-	private Socket socket;
-	private DataInputStream entrada;
-	private DataOutputStream salida;
+    private static ControladorServidor instance;
 
-	private int usuarioId;
+    private Socket socket;
+    private DataInputStream entrada;
+    private DataOutputStream salida;
 
-	public int getUsuarioId() {
-		return usuarioId;
-	}
+    private int usuarioId;
 
-	public Socket getSocket() {
-		return socket;
-	}
+    private final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
 
-	public DataInputStream getEntrada() {
-		return entrada;
-	}
+    private ControladorServidor() {
+    }
 
-	public DataOutputStream getSalida() {
-		return salida;
-	}
+    public static synchronized ControladorServidor getInstance() {
+        if (instance == null) {
+            instance = new ControladorServidor();
+        }
+        return instance;
+    }
 
-	public void setSocket(Socket socket) {
-		this.socket = socket;
-	}
+    public synchronized void connect(String host, int port) throws Exception {
+        if (socket != null && !socket.isClosed()) return; // ya conectados
+        socket = new Socket(host, port);
+        entrada = new DataInputStream(socket.getInputStream());
+        salida = new DataOutputStream(socket.getOutputStream());
+    }
 
-	public ControladorServidor(Socket socket) {
-		this.socket = socket;
-		try {
-			this.entrada = new DataInputStream(socket.getInputStream());
-			this.salida = new DataOutputStream(socket.getOutputStream());
+    public int getUsuarioId() {
+        return usuarioId;
+    }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    public synchronized int verificarLogin(String usuario, String password) {
+        try {
+            if (socket == null || socket.isClosed()) connect("localhost", 5000);
 
-	public String generarHash(String usu) {
-		// TODO Auto-generated method stub
-		String cifrado = "";
+            salida.writeUTF("LOGIN");
+            salida.writeUTF(usuario);
+            salida.writeUTF(password);
+            salida.flush();
 
-		try {
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			byte[] dataBytes = usu.getBytes();
-			md.update(dataBytes);
-			byte[] resumen = md.digest();
+            int codigo = entrada.readInt();
+            int id = entrada.readInt();
 
-			StringBuilder sb = new StringBuilder();
-			for (byte b : resumen) {
-				sb.append(String.format("%02x", b));
-			}
-			cifrado = sb.toString();
+            this.usuarioId = id;
 
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
+            return codigo;
 
-		return cifrado;
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
 
-	public int verificarLogin(String usuario, String password) {
-		try {
-			salida.writeUTF("LOGIN");
-			salida.writeUTF(usuario);
-			salida.writeUTF(password);
-			salida.flush();
+    private void ensureConnected() throws Exception {
+        if (socket == null || socket.isClosed()) connect("localhost", 5000);
+    }
 
-			int codigo = entrada.readInt();
-			int id = entrada.readInt();
+    public synchronized String obtenerPerfilJson(int idUsuario) {
+        try {
+            ensureConnected();
+            salida.writeUTF("GET_PERFIL");
+            salida.writeInt(idUsuario);
+            salida.flush();
 
-			this.usuarioId = id;
+            String json = entrada.readUTF();
+            return json;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 
-			return codigo;
+    public synchronized String obtenerAlumnosJson(int idProfesor) {
+        try {
+            ensureConnected();
+            salida.writeUTF("GET_ALUMNOS");
+            salida.writeInt(idProfesor);
+            salida.flush();
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			return 0;
-		}
-	}
+            String json = entrada.readUTF();
+            return json;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 
-	public void desconectar() {
-		// TODO Auto-generated method stub
-		try {
+    public synchronized String obtenerProfesoresJson() {
+        try {
+            ensureConnected();
+            salida.writeUTF("GET_PROFESORES");
+            salida.flush();
+
+            String json = entrada.readUTF();
+            return json;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    public synchronized String obtenerHorarioJson(int idProfesor) {
+        try {
+            ensureConnected();
+            salida.writeUTF("GET_HORARIO");
+            salida.writeInt(idProfesor);
+            salida.flush();
+
+            String json = entrada.readUTF();
+            return json;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    public synchronized String obtenerCentrosJson() {
+        try {
+            ensureConnected();
+            salida.writeUTF("GET_CENTROS");
+            salida.flush();
+
+            int len = entrada.readInt();
+            byte[] data = new byte[len];
+            entrada.readFully(data);
+            return new String(data, "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    public synchronized boolean crearReunion(Reuniones reunion) {
+        try {
+            ensureConnected();
+            String json = gson.toJson(reunion);
+            salida.writeUTF("CREAR_REUNION");
+            salida.writeUTF(json);
+            salida.flush();
+
+            boolean creada = entrada.readBoolean();
+            return creada;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public synchronized String obtenerReunionesProfesorJson(int idProfesor) {
+        try {
+            ensureConnected();
+            salida.writeUTF("GET_REUNIONES");
+            salida.writeInt(idProfesor);
+            salida.flush();
+
+            int len = entrada.readInt();
+            byte[] data = new byte[len];
+            entrada.readFully(data);
+            return new String(data, "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    public synchronized void desconectar() {
+        try {
             if (socket != null && !socket.isClosed()) {
-
-           //Avisamos y luego se sale
-                salida.writeUTF("LOGOUT");
-                salida.flush();
-
+                try {
+                    salida.writeUTF("LOGOUT");
+                    salida.flush();
+                } catch (Exception e) {
+                    // ignore
+                }
                 socket.close();
+                socket = null;
+                entrada = null;
+                salida = null;
                 System.out.println("Socket cerrado correctamente");
             }
         } catch (Exception e) {

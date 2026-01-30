@@ -19,7 +19,7 @@ public class VerReuniones extends JFrame {
     private JTable tablaPendientes;
     private JButton btnVolver;
 
-    public VerReuniones(int idProfesor) {
+    public VerReuniones() {
 
         setTitle("Reuniones del Profesor");
         setSize(1000, 700);
@@ -27,23 +27,36 @@ public class VerReuniones extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // 1. Cargar datos
-        List<Horarios> horario = Horarios.obtenerHorarioREST(idProfesor);
-        List<Reuniones> reuniones = Reuniones.obtenerReunionesProfesorREST(idProfesor);
+        // Componentes iniciales vacíos
+        tablaHorario = new JTable(new String[6][5], new String[]{"LUNES","MARTES","MIERCOLES","JUEVES","VIERNES"});
+        tablaHorario.setRowHeight(80);
+        tablaPendientes = new JTable(new Object[0][5], new String[]{"ID","Alumno","Título","Fecha","Estado"});
+        tablaPendientes.setRowHeight(30);
 
-        // 2. Crear horario visual combinado
-        tablaHorario = construirHorarioConReuniones(horario, reuniones);
-
-        // 3. Crear tabla de pendientes
-        tablaPendientes = construirTablaPendientes(reuniones);
-
-        // 4. Botón volver
+        // Botón volver
         btnVolver = new JButton("⬅ Volver");
 
-        // 5. Añadir componentes
+        // Añadir componentes
         add(new JScrollPane(tablaHorario), BorderLayout.CENTER);
         add(new JScrollPane(tablaPendientes), BorderLayout.SOUTH);
         add(btnVolver, BorderLayout.NORTH);
+    }
+
+    // Setter para popular datos desde el controlador
+    public void setData(java.util.List<Horarios> horario, java.util.List<Reuniones> reuniones) {
+        JTable nuevoHorario = construirHorarioConReuniones(horario, reuniones);
+        JTable nuevasPendientes = construirTablaPendientes(reuniones);
+
+        getContentPane().removeAll();
+        add(new JScrollPane(nuevoHorario), BorderLayout.CENTER);
+        add(new JScrollPane(nuevasPendientes), BorderLayout.SOUTH);
+        add(btnVolver, BorderLayout.NORTH);
+
+        revalidate();
+        repaint();
+
+        this.tablaHorario = nuevoHorario;
+        this.tablaPendientes = nuevasPendientes;
     }
 
     // ============================================================
@@ -56,7 +69,7 @@ public class VerReuniones extends JFrame {
         String[][] tabla = new String[6][5];
 
         // 1. Pintar asignaturas
-        for (Horarios h : horario) {
+        if (horario != null) for (Horarios h : horario) {
             int fila = h.getHora() - 1;
             int col = diaAColumna(h.getDia());
             if (fila >= 0 && fila < 6 && col >= 0)
@@ -64,7 +77,7 @@ public class VerReuniones extends JFrame {
         }
 
         // 2. Pintar reuniones
-        for (Reuniones r : reuniones) {
+        if (reuniones != null) for (Reuniones r : reuniones) {
 
             LocalDateTime dt = r.getFecha().toLocalDateTime();
 
@@ -128,7 +141,7 @@ public class VerReuniones extends JFrame {
     private JTable construirTablaPendientes(List<Reuniones> reuniones) {
 
         String[] columnas = {"ID", "Alumno", "Título", "Fecha", "Estado"};
-        List<Reuniones> pendientes = reuniones.stream()
+        List<Reuniones> pendientes = (reuniones == null) ? java.util.Collections.emptyList() : reuniones.stream()
                 .filter(r -> r.getEstado().equalsIgnoreCase("Pendiente"))
                 .toList();
 

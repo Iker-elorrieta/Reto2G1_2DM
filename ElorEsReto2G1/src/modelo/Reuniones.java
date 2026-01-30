@@ -7,9 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
-import controlador.HttpClientHelper;
+import controlador.ControladorServidor;
 
 public class Reuniones implements Serializable {
 
@@ -84,18 +83,9 @@ public class Reuniones implements Serializable {
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
 
-    public static boolean crearReunionREST(Reuniones reunion) {
+    public static boolean crearReunion(Reuniones reunion) {
         try {
-            Gson gson = new GsonBuilder()
-                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-                    .create();
-
-            String json = gson.toJson(reunion);
-
-            String respuesta = HttpClientHelper.postJson("reuniones/crear", json);
-
-            return Boolean.parseBoolean(respuesta);
-
+            return ControladorServidor.getInstance().crearReunion(reunion);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -104,10 +94,11 @@ public class Reuniones implements Serializable {
 
     
     
-    public static List<Reuniones> obtenerReunionesProfesorREST(int idProfesor) {
+    public static List<Reuniones> obtenerReunionesProfesor(int idProfesor) {
         try {
-            
-            String json = HttpClientHelper.get("reuniones/profesor/" + idProfesor);
+            String json = ControladorServidor.getInstance().obtenerReunionesProfesorJson(idProfesor);
+
+            if (json == null || json.isEmpty()) return new ArrayList<>();
 
             Gson gson = new Gson();
             Reuniones[] array = gson.fromJson(json, Reuniones[].class);

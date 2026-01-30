@@ -8,7 +8,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 
-import controlador.HttpClientHelper;
+import controlador.ControladorServidor;
 
 public class Users implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -178,13 +178,13 @@ public class Users implements Serializable {
 
 
         // ============================================================
-        // ======================= MÉTODOS REST ========================
+        // ==================== MÉTODOS POR SOCKET =====================
         // ============================================================
 
 
-    public static Users obtenerPerfilREST(int idUsuario) {
+    public static Users obtenerPerfil(int idUsuario) {
         try {
-            String json = HttpClientHelper.get("perfil/" + idUsuario);
+            String json = ControladorServidor.getInstance().obtenerPerfilJson(idUsuario);
 
             if (json != null && !json.isEmpty()) {
                 return new Gson().fromJson(json, Users.class);
@@ -196,9 +196,11 @@ public class Users implements Serializable {
     }
 
 
-    public static List<Users> obtenerAlumnosREST(int idProfesor) {
+    public static List<Users> obtenerAlumnos(int idProfesor) {
         try {
-            String json = HttpClientHelper.get("profesor/" + idProfesor + "/alumnos");
+            String json = ControladorServidor.getInstance().obtenerAlumnosJson(idProfesor);
+
+            if (json == null || json.isEmpty()) return new ArrayList<>();
 
             Users[] array = new Gson().fromJson(json, Users[].class);
             return Arrays.asList(array);
@@ -208,9 +210,11 @@ public class Users implements Serializable {
             return new ArrayList<>();
         }
     }
-        public static List<Users> obtenerProfesoresREST() {
+        public static List<Users> obtenerProfesores() {
             try {
-                String json = HttpClientHelper.get("profesores");
+                String json = ControladorServidor.getInstance().obtenerProfesoresJson();
+
+                if (json == null || json.isEmpty()) return new ArrayList<>();
 
                 Users[] array = new Gson().fromJson(json, Users[].class);
                 return Arrays.asList(array);

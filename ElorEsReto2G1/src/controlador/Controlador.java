@@ -8,7 +8,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import com.google.gson.Gson;
 
 import modelo.Centro;
 import modelo.Horarios;
@@ -20,7 +19,7 @@ import vista.Horario;
 import vista.InicioCliente;
 import vista.Login;
 import vista.Menu;
-import vista.OtrsHorarios;
+import vista.OtrosHorarios;
 import vista.Perfil;
 import vista.VerReuniones;
 
@@ -61,15 +60,14 @@ public class Controlador {
         }
 
         try {
-            String json = HttpClientHelper.get("login/" + usuario + "/" + contrasena);
+            int codigo = controlador.ControladorServidor.getInstance().verificarLogin(usuario, contrasena);
 
-            Gson gson = new Gson();
-            Users user = gson.fromJson(json, Users.class);
-
-            if (user != null && user.getTipos().getId() == 3) {
-                idUsuario = user.getId();
+            if (codigo == 1) { // Profesor
+                idUsuario = controlador.ControladorServidor.getInstance().getUsuarioId();
                 vistaLogin.dispose();
                 mostrarVistaMenu();
+            } else if (codigo == 2) {
+                vistaLogin.mostrarMensajeError("Usuario sin permisos de profesor", "Acceso denegado");
             } else {
                 vistaLogin.mostrarMensajeError("Usuario o contraseña incorrectos", "Acceso denegado");
             }
@@ -96,19 +94,21 @@ public class Controlador {
     }
 
     private void crearReuniones() {
-        List<Users> alumnos = Users.obtenerAlumnosREST(idUsuario);
+        List<Users> alumnos = Users.obtenerAlumnos(idUsuario);
         if (alumnos == null || alumnos.isEmpty()) {
             vistaMenu.mostrarMensajeError("No se encontraron alumnos para crear reuniones.");
             return;
         }
 
-        Users profesor = Users.obtenerPerfilREST(idUsuario);
+        Users profesor = Users.obtenerPerfil(idUsuario);
         if (profesor == null) {
             vistaMenu.mostrarMensajeError("No se pudo obtener el perfil del profesor.");
             return;
         }
 
-        CrearReuiniones vistaCrear = new CrearReuiniones(this, alumnos);
+        CrearReuiniones vistaCrear = new CrearReuiniones();
+        vistaCrear.setEstudiantes(alumnos);
+        vistaCrear.setCentros(obtenerCentros());
 
         vistaCrear.getBtnVolver().addActionListener(e -> {
             vistaCrear.dispose();
@@ -119,7 +119,7 @@ public class Controlador {
             Reuniones reunion = vistaCrear.construirReunion(profesor);
             if (reunion == null) return;
 
-            boolean creada = Reuniones.crearReunionREST(reunion);
+            boolean creada = Reuniones.crearReunion(reunion);
 
             if (creada) {
                 JOptionPane.showMessageDialog(vistaCrear, "Reunión creada correctamente.");
@@ -135,7 +135,7 @@ public class Controlador {
     }
 
     private void mostrarPerfilPropio() {
-        Users usuario = Users.obtenerPerfilREST(idUsuario);
+        Users usuario = Users.obtenerPerfil(idUsuario);
         if (usuario == null) {
             vistaMenu.mostrarMensajeError("No se pudo obtener el perfil del usuario.");
             return;
@@ -162,7 +162,7 @@ public class Controlador {
     }
 
     private void mostrarAlumnos() {
-        List<Users> listadoAlumnos = Users.obtenerAlumnosREST(idUsuario);
+        List<Users> listadoAlumnos = Users.obtenerAlumnos(idUsuario);
         if (listadoAlumnos == null || listadoAlumnos.isEmpty()) {
             vistaMenu.mostrarMensajeError("No se encontraron alumnos.");
             return;
@@ -184,7 +184,7 @@ public class Controlador {
     }
 
     private void mostrarHorarioPropio() {
-        List<Horarios> horarioDocente = Horarios.obtenerHorarioREST(idUsuario);
+        List<Horarios> horarioDocente = Horarios.obtenerHorario(idUsuario);
         mostrarHorario(horarioDocente, "Horario del profesor", vistaMenu);
     }
 
@@ -205,19 +205,20 @@ public class Controlador {
     }
 
     private void mostrarOtrosHorarios() {
-        List<Users> profesores = Users.obtenerProfesoresREST();
+        List<Users> profesores = Users.obtenerProfesores();
 
         if (profesores == null || profesores.isEmpty()) {
             vistaMenu.mostrarMensajeError("No se encontraron profesores.");
             return;
         }
 
-        OtrsHorarios vistaOtrosHorarios = new OtrsHorarios(profesores);
+        OtrosHorarios vistaOtrosHorarios = new OtrosHorarios();
+        vistaOtrosHorarios.setProfesores(profesores);
 
         vistaOtrosHorarios.getBtnVerHorario().addActionListener(evento -> {
             Users profesorSeleccionado = vistaOtrosHorarios.getSelectedProfesor();
             if (profesorSeleccionado != null) {
-                List<Horarios> horario = Horarios.obtenerHorarioREST(profesorSeleccionado.getId());
+                List<Horarios> horario = Horarios.obtenerHorario(profesorSeleccionado.getId());
                 mostrarHorarioDesde(vistaOtrosHorarios, horario, profesorSeleccionado);
             }
         });
@@ -230,6 +231,7 @@ public class Controlador {
         vistaMenu.setVisible(false);
         vistaOtrosHorarios.setVisible(true);
     }
+
 
     private void mostrarHorarioDesde(JFrame ventanaOrigen, List<Horarios> horario, Users profesor) {
         if (horario == null || horario.isEmpty()) {
@@ -250,12 +252,23 @@ public class Controlador {
     }
 
     private void mostrarReuniones() {
-        VerReuniones vistaReuniones = new VerReuniones(idUsuario);
+        VerReuniones vistaReuniones = new VerReuniones();
+
+        List<Horarios> horario = Horarios.obtenerHorario(idUsuario);
+        List<Reuniones> reuniones = Reuniones.obtenerReunionesProfesor(idUsuario);
+        vistaReuniones.setData(horario, reuniones);
+
         vistaReuniones.setVisible(true);
     }
 
     private void manejarCierreSesion() {
         idUsuario = 0;
+
+        try {
+            controlador.ControladorServidor.getInstance().desconectar();
+        } catch (Exception e) {
+            // ignore
+        }
 
         if (vistaMenu != null) vistaMenu.dispose();
         if (vistaLogin != null) vistaLogin.dispose();
@@ -264,6 +277,6 @@ public class Controlador {
     }
 
     public List<Centro> obtenerCentros() {
-        return Centro.obtenerCentrosREST();
+        return Centro.obtenerCentros();
     }
 }

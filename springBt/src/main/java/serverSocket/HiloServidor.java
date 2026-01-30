@@ -179,15 +179,14 @@ public class HiloServidor extends Thread {
                             int idProfesor = entrada.readInt();
                             List<Reuniones> reuniones = Reuniones.obtenerReunionesProfesor(idProfesor);
 
-                         
-
                             String json = gson.toJson(reuniones);
                             byte[] data = json.getBytes("UTF-8");
                             salida.writeInt(data.length);
                             salida.write(data);
+                            salida.flush();
+                            System.out.println("Reuniones enviadas para profesor: " + idProfesor);
                             break;
                         }
-
 
                         // ================= DESCONOCIDO =================
                         default:
@@ -213,7 +212,6 @@ public class HiloServidor extends Thread {
                 System.out.println("Error cerrando socket: " + ex.getMessage());
             }
         }
+
     }
-
-
 }

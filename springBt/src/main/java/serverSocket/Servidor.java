@@ -18,6 +18,7 @@ public class Servidor extends Thread {
                 Socket conx = servidor.accept();
                 HiloServidor hiloSrvdr = new HiloServidor(conx);
                 hiloSrvdr.start();
+                System.out.println("Nueva conexión aceptada: " + conx.getRemoteSocketAddress());
             }
 
         } catch (IOException e) {

@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 
-import controlador.HttpClientHelper;
+import controlador.ControladorServidor;
 
 public class Centro {
     private String CCEN;
@@ -23,9 +23,12 @@ public class Centro {
     public String toString() {
         return NOM ;
     }
-    public static List<Centro> obtenerCentrosREST() {
+
+    public static List<Centro> obtenerCentros() {
         try {
-            String json = HttpClientHelper.get("centros");
+            String json = ControladorServidor.getInstance().obtenerCentrosJson();
+
+            if (json == null || json.isEmpty()) return new ArrayList<>();
 
             Gson gson = new Gson();
             Centro[] array = gson.fromJson(json, Centro[].class);
