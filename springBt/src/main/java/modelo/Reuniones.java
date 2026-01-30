@@ -2,10 +2,17 @@ package modelo;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import com.example.springBt.HibernateUtil;
 
 public class Reuniones implements Serializable {
 
@@ -147,6 +154,76 @@ public class Reuniones implements Serializable {
 
     public void setIdProfesor(Integer idProfesor) {
         this.idProfesor = idProfesor;
+    }
+    
+    // Crear reunión
+    public boolean crearReunion() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction tx = session.beginTransaction();
+
+            Users alumno = session.get(Users.class, getIdAlumno());
+            Users profesor = session.get(Users.class, getIdProfesor());
+          
+
+            setAlumno(alumno);
+            setProfesor(profesor);
+     
+
+
+            if (alumno == null || profesor == null) {
+                throw new RuntimeException("Alumno o profesor no existe");
+            }
+
+            setAlumno(alumno);
+            setProfesor(profesor);
+
+            // 🔹 Timestamps
+            Timestamp ahora = new Timestamp(System.currentTimeMillis());
+            setCreatedAt(ahora);
+            setUpdatedAt(ahora);
+
+            // 🔹 Persistir
+            session.persist(this);
+            tx.commit();
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Servicio para obtener reuniones de un profesor
+    public static List<Reuniones> obtenerReunionesProfesor(int idProfesor) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            List<modelo.Reuniones> lista = session.createQuery(
+                    "SELECT r FROM Reuniones r WHERE r.profesor.id = :idProfesor",
+                    modelo.Reuniones.class
+            )
+            .setParameter("idProfesor", idProfesor)
+            .getResultList();
+
+            List<Reuniones> resultado = new ArrayList<>();
+
+            // Convertimos a DTO con solo IDs
+            for (modelo.Reuniones r : lista) {
+                Reuniones plano = new Reuniones();
+                plano.setIdReunion(r.getIdReunion());
+                plano.setIdAlumno(r.getAlumno().getId());
+                plano.setIdProfesor(r.getProfesor().getId());
+                plano.setEstado(r.getEstado());
+                plano.setEstadoEus(r.getEstadoEus());
+                plano.setIdCentro(r.getIdCentro());
+                plano.setTitulo(r.getTitulo());
+                plano.setAsunto(r.getAsunto());
+                plano.setAula(r.getAula());
+                plano.setFecha(r.getFecha());
+                resultado.add(plano);
+            }
+
+            return resultado;
+        }
     }
 
 }

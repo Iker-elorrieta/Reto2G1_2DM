@@ -7,12 +7,7 @@ import java.util.List;
 
 import org.hibernate.Hibernate;
 
-import com.example.springBt.AlumnoService;
-import com.example.springBt.CentrosService;
-import com.example.springBt.HorarioService;
-import com.example.springBt.LoginService;
-import com.example.springBt.PerfilService;
-import com.example.springBt.ReunionesService;
+import com.example.springBt.PerfilController;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -27,12 +22,7 @@ public class HiloServidor extends Thread {
     private Gson gson;
 
     // Servicios creados UNA sola vez
-    private final LoginService loginService = new LoginService();
-    private final PerfilService perfilService = new PerfilService();
-    private final AlumnoService alumnoService = new AlumnoService();
-    private final HorarioService horarioService = new HorarioService();
-    private final ReunionesService reunionService = new ReunionesService();
-    private final CentrosService centrosService = new CentrosService();
+    private final PerfilController perfilService = new PerfilController();
 
     public HiloServidor(Socket conx) {
         this.conx = conx;
@@ -67,7 +57,7 @@ public class HiloServidor extends Thread {
                             String usuario = entrada.readUTF();
                             String password = entrada.readUTF();
 
-                            Users user = loginService.login(usuario, password);
+                            Users user = Users.login(usuario, password);
 
                             int codigo;
                             int idUsuario = -1;
@@ -119,7 +109,7 @@ public class HiloServidor extends Thread {
                         case "GET_ALUMNOS": {
                             int idProfesor = entrada.readInt();
 
-                            List<Users> alumnos = alumnoService.getAlumnosDelProfesor(idProfesor);
+                            List<Users> alumnos = perfilService.getAlumnosDelProfesor(idProfesor);
                             if (alumnos != null) {
                                 alumnos.forEach(this::limpiarUsuario);
                             }
@@ -136,7 +126,7 @@ public class HiloServidor extends Thread {
 	                        case "GET_HORARIO": {
 	                            int idProfesor = entrada.readInt();
 	
-	                            List<Horarios> horarios = horarioService.obtenerHorarioProfesor(idProfesor);
+	                            List<Horarios> horarios = Horarios.obtenerHorarioProfesor(idProfesor);
 	                            if (horarios != null) {
 	                                for (Horarios h : horarios) {
 	                                    limpiarUsuario(h.getUsers());
@@ -154,7 +144,7 @@ public class HiloServidor extends Thread {
 
                         // ================= GET_PROFESORES =================
                         case "GET_PROFESORES": {
-                            List<Users> profesores = alumnoService.getProfesores();
+                            List<Users> profesores = perfilService.getProfesores();
                             if (profesores != null) {
                                 profesores.forEach(this::limpiarUsuario);
                             }
@@ -173,7 +163,7 @@ public class HiloServidor extends Thread {
                             String jsonReunion = entrada.readUTF();
                             Reuniones reunion = gson.fromJson(jsonReunion, Reuniones.class);
 
-                            boolean creada = reunionService.crearReunion(reunion);
+                            boolean creada = reunion.crearReunion();
                             salida.writeBoolean(creada);
                             salida.flush();
 
@@ -183,7 +173,7 @@ public class HiloServidor extends Thread {
 
                         // ================= GET_CENTROS =================
                         case "GET_CENTROS": {
-                            List<Centro> centros = centrosService.obtenerTodosCentros();
+                            List<Centro> centros = Centro.obtenerTodosCentros();
                             String jsonResponse = gson.toJson(centros);
 
                             byte[] data = jsonResponse.getBytes("UTF-8");
@@ -198,7 +188,7 @@ public class HiloServidor extends Thread {
                         // ================= GET_REUNIONES (pendiente) =================
                         case "GET_REUNIONES": {
                             int idProfesor = entrada.readInt();
-                            List<Reuniones> reuniones = reunionService.obtenerReunionesProfesor(idProfesor);
+                            List<Reuniones> reuniones = Reuniones.obtenerReunionesProfesor(idProfesor);
 
                             if (reuniones != null) {
                                 for (Reuniones r : reuniones) {

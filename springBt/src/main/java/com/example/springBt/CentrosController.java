@@ -1,7 +1,6 @@
 package com.example.springBt;
 
 import modelo.Centro;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,8 +11,6 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class CentrosController {
 
-    @Autowired
-    private CentrosService centrosService;
 
     /**
      * Obtiene todos los centros
@@ -21,7 +18,7 @@ public class CentrosController {
      */
     @GetMapping
     public ResponseEntity<List<Centro>> obtenerTodosCentros() {
-        List<Centro> centros = centrosService.obtenerTodosCentros();
+        List<Centro> centros = Centro.obtenerTodosCentros();
         return ResponseEntity.ok(centros);
     }
 
@@ -31,7 +28,7 @@ public class CentrosController {
      */
     @GetMapping("/{ccen}")
     public ResponseEntity<Centro> obtenerCentroPorCodigo(@PathVariable String ccen) {
-        Centro centro = centrosService.obtenerCentroPorCodigo(ccen);
+        Centro centro = Centro.obtenerCentroPorCodigo(ccen);
         if (centro != null) {
             return ResponseEntity.ok(centro);
         } else {
@@ -45,7 +42,7 @@ public class CentrosController {
      */
     @GetMapping("/municipio/{municipio}")
     public ResponseEntity<List<Centro>> obtenerCentrosPorMunicipio(@PathVariable String municipio) {
-        List<Centro> centros = centrosService.obtenerCentrosPorMunicipio(municipio);
+        List<Centro> centros = Centro.obtenerCentrosPorMunicipio(municipio);
         return ResponseEntity.ok(centros);
     }
 
@@ -55,7 +52,7 @@ public class CentrosController {
      */
     @GetMapping("/count")
     public ResponseEntity<Integer> obtenerNumeroCentros() {
-        int count = centrosService.obtenerNumeroCentros();
+        int count = Centro.obtenerNumeroCentros();
         return ResponseEntity.ok(count);
     }
 }

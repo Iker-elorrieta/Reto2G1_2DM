@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,14 +16,11 @@ import modelo.Reuniones;
 
 @RestController
 @RequestMapping("/api/reuniones")
-public class ReuinionesContrl {
-
-    @Autowired
-    private ReunionesService reunionService;
+public class ReunionesController {
 
     @PostMapping("/crear")
     public ResponseEntity<Boolean> crearReunion(@RequestBody Reuniones reunion) {
-        boolean creada = reunionService.crearReunion(reunion);
+        boolean creada = reunion.crearReunion();
         return ResponseEntity.ok(creada);
     }
 

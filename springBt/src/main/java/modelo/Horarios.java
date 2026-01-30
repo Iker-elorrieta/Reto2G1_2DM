@@ -2,7 +2,13 @@ package modelo;
 // Generated 19 ene 2026, 8:30:00 by Hibernate Tools 6.5.1.Final
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+
+import com.example.springBt.HibernateUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
@@ -140,5 +146,31 @@ public class Horarios implements java.io.Serializable {
 	public void setNombreModulo(String nombreModulo) {
 		this.nombreModulo = nombreModulo;
 	}
+	
+	@JsonIgnore
+    public static List<Horarios>  obtenerHorarioProfesor(Integer idProfesor) {
+        List<Horarios> resultado = new ArrayList<>();
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            final Users profesor = session.get(Users.class, idProfesor);
+
+            List<modelo.Horarios> lista = session.createQuery(
+                "SELECT h FROM Horarios h WHERE h.users = :profesor ORDER BY h.dia, h.hora",
+                modelo.Horarios.class)
+            .setParameter("profesor", profesor)
+            .getResultList();
+
+            for (modelo.Horarios h : lista) {
+
+                Hibernate.initialize(h.getModulos());
+
+                Horarios plano = new Horarios(h);
+                resultado.add(plano);
+            }
+        }
+
+        return resultado;
+    }
 
 }
