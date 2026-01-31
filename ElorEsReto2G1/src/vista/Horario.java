@@ -1,89 +1,75 @@
 package vista;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.List;
-
-import controlador.Controlador;
-import modelo.Horarios;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 public class Horario extends JFrame {
 	private static final long serialVersionUID = 1L;
+	private JButton botonVolver;
+	private JTable tablaVisual;
 
-	public Horario(Controlador controlador, int idProfesor, Menu menu) {
+	public Horario() {
+		setTitle("");
+		setSize(900, 600);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        setTitle("Horario del Profesor");
-        setSize(900, 600);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		String[] dias = { "Hora", "LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES" };
+		int rows = (20 - 8) + 1; // horas 08:00..20:00
+		String[][] tablaHorario = new String[rows][dias.length];
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < dias.length; j++) {
+				if (j == 0) tablaHorario[i][j] = String.format("%02d:00", 8 + i);
+				else tablaHorario[i][j] = "";
+			}
+		}
 
-        List<Horarios> horario = controlador.obtenerHorario(idProfesor);
+		// 1. CREAR MODELO NO EDITABLE
+		DefaultTableModel modeloTabla = new DefaultTableModel(tablaHorario, dias) {
+			private static final long serialVersionUID = 1L;
 
-        
-        String[] dias = {"LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"};
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false; // Esto bloquea la edición de todas las celdas
+			}
+		};
 
-        // 6 horas x 5 días
-        String[][] tabla = new String[6][5];
-        for (Horarios h : horario) {
-            int hora = h.getHora() - 1;
-            int col = diaAColumna(h.getDia());
+		// 2. ASIGNAR MODELO A LA TABLA
+		tablaVisual = new JTable(modeloTabla);
 
-            if (hora < 0 || hora >= 6 || col == -1) continue;
+		// Ajustes visuales
+		tablaVisual.setRowHeight(80); // Aumentamos un poco el alto para el texto multi-línea
+		tablaVisual.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		tablaVisual.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
+		tablaVisual.setCellSelectionEnabled(false); // Opcional: evita que se resalten celdas individuales
 
-            String texto = "";
+		JScrollPane panelDesplazable = new JScrollPane(tablaVisual);
+		add(panelDesplazable, BorderLayout.CENTER);
 
-            if (h.getModulos() != null && h.getModulos().getNombre() != null) {
-                texto = h.getModulos().getNombre();
-            } else if (h.getObservaciones() != null) {
-                texto = h.getObservaciones();
-            } else if (h.getAula() != null && !h.getAula().equals("5.005")) {
-                texto = h.getAula();
-            }
+		botonVolver = new JButton("⬅ Volver al menú");
+		botonVolver.setBackground(new Color(70, 130, 180));
+		botonVolver.setForeground(Color.WHITE);
+		botonVolver.setFocusPainted(false);
 
+		add(botonVolver, BorderLayout.SOUTH);
+	}
 
-            tabla[hora][col] = texto;
-        }
+	public void setTableModel(DefaultTableModel modeloTabla, String tituloVentana) {
+		setTitle(tituloVentana);
+		tablaVisual.setModel(modeloTabla);
+	}
 
+	public JButton getBtnVolver() {
+		return botonVolver;
+	}
 
-        
-
-        JTable table = new JTable(tabla, dias);
-        table.setRowHeight(60);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
-
-        JScrollPane scroll = new JScrollPane(table);
-        add(scroll, BorderLayout.CENTER);
-
-        JButton btnVolver = new JButton("⬅ Volver al menú");
-        btnVolver.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btnVolver.setBackground(new Color(70, 130, 180));
-        btnVolver.setForeground(Color.WHITE);
-        btnVolver.setFocusPainted(false);
-
-        btnVolver.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-            	
-            	menu.setVisible(true);
-            	setVisible(false);
-            	
-            }
-        });
-
-        add(btnVolver, BorderLayout.SOUTH);
-    }
-
-    private int diaAColumna(String dia) {
-        return switch (dia.toUpperCase()) {
-            case "LUNES" -> 0;
-            case "MARTES" -> 1;
-            case "MIERCOLES" -> 2;
-            case "JUEVES" -> 3;
-            case "VIERNES" -> 4;
-            default -> -1;
-        };
-    }
+	public void setBtnVolver(JButton btnVolver) {
+		this.botonVolver = btnVolver;
+	}
 }

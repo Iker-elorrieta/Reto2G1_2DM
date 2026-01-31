@@ -1,17 +1,14 @@
 package modelo;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import controlador.ControladorServidor;
 
-
-public class Users implements java.io.Serializable {
-
-    /**
-	 * 
-	 */
-	
+public class Users implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private Integer id;
     private Tipos tipos;
@@ -28,12 +25,13 @@ public class Users implements java.io.Serializable {
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
-    private Set<Matriculaciones> matriculaciones = new HashSet<>();
-    private Set<Reuniones> reunionesForAlumno = new HashSet<>();
-    private Set<Reuniones> reunionesForProfesor = new HashSet<>();
-    private Set<Horarios> horarios = new HashSet<>();
 
-    public Users() {}
+    @Override
+	public String toString() {
+		return  nombre + " " +   apellidos ;
+	}
+
+	public Users() {}
 
     public Users(Tipos tipos, String email, String username, String password) {
         this.tipos = tipos;
@@ -46,11 +44,8 @@ public class Users implements java.io.Serializable {
         Tipos tipos, String email, String username, String password,
         String nombre, String apellidos, String dni, String direccion,
         String telefono1, String telefono2, String argazkiaUrl,
-        Timestamp createdAt, Timestamp updatedAt,
-        Set<Matriculaciones> matriculaciones,
-        Set<Reuniones> reunionesForAlumno,
-        Set<Horarios> horarios,
-        Set<Reuniones> reunionesForProfesor
+        Timestamp createdAt, Timestamp updatedAt
+
     ) {
         this.tipos = tipos;
         this.email = email;
@@ -65,10 +60,6 @@ public class Users implements java.io.Serializable {
         this.argazkiaUrl = argazkiaUrl;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.matriculaciones = matriculaciones;
-        this.reunionesForAlumno = reunionesForAlumno;
-        this.horarios = horarios;
-        this.reunionesForProfesor = reunionesForProfesor;
     }
 
     public Integer getId() {
@@ -183,35 +174,67 @@ public class Users implements java.io.Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public Set<Matriculaciones> getMatriculaciones() {
-        return matriculaciones;
+
+        // ============================================================
+        // ==================== MÉTODOS POR SOCKET =====================
+        // ============================================================
+
+
+    public static Users obtenerPerfil(int idUsuario) {
+        try {
+            String json = ControladorServidor.getInstance().obtenerPerfilJson(idUsuario);
+
+            if (json != null && !json.isEmpty()) {
+                com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                        .create();
+                return gson.fromJson(json, Users.class);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public void setMatriculaciones(Set<Matriculaciones> matriculaciones) {
-        this.matriculaciones = matriculaciones;
+
+    public static List<Users> obtenerAlumnos(int idProfesor) {
+        try {
+            String json = ControladorServidor.getInstance().obtenerAlumnosJson(idProfesor);
+
+            if (json == null || json.isEmpty()) return new ArrayList<>();
+
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                    .create();
+            Users[] array = gson.fromJson(json, Users[].class);
+            if (array == null) return new ArrayList<>();
+            return Arrays.asList(array);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+        public static List<Users> obtenerProfesores() {
+            try {
+                String json = ControladorServidor.getInstance().obtenerProfesoresJson();
+
+                if (json == null || json.isEmpty()) return new ArrayList<>();
+
+                com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                        .create();
+                Users[] array = gson.fromJson(json, Users[].class);
+                if (array == null) return new ArrayList<>();
+                return Arrays.asList(array);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new ArrayList<>();
+            }
+        }
+
+     
     }
 
-    public Set<Reuniones> getReunionesForAlumno() {
-        return reunionesForAlumno;
-    }
 
-    public void setReunionesForAlumno(Set<Reuniones> reunionesForAlumno) {
-        this.reunionesForAlumno = reunionesForAlumno;
-    }
-
-    public Set<Reuniones> getReunionesForProfesor() {
-        return reunionesForProfesor;
-    }
-
-    public void setReunionesForProfesor(Set<Reuniones> reunionesForProfesor) {
-        this.reunionesForProfesor = reunionesForProfesor;
-    }
-
-    public Set<Horarios> getHorarios() {
-        return horarios;
-    }
-
-    public void setHorarios(Set<Horarios> horarios) {
-        this.horarios = horarios;
-    }
-}

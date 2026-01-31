@@ -1,5 +1,16 @@
 package modelo;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.core.io.ClassPathResource;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 public class Centro {
     private String CCEN;
     private String NOM;
@@ -283,5 +294,118 @@ public class Centro {
                 ", LATITUD='" + LATITUD + '\'' +
                 ", LONGITUD='" + LONGITUD + '\'' +
                 '}';
+    }
+    
+    private static List<Centro> centros = new ArrayList<>();
+
+    /**
+     * Carga los centros desde el archivo JSON usando Gson
+     */
+    public static synchronized void cargarCentrosDesdeJSON() {
+        try {
+            // Cargar el archivo JSON desde resources
+            ClassPathResource resource = new ClassPathResource("EuskadiLatLon.json");
+            InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
+
+            // Crear instancia de Gson
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+            // Deserializar el JSON a un objeto CentrosData
+            Centro[] centrosData = gson.fromJson(reader, Centro[].class);
+
+            // Inicializar lista y convertir elementos
+            centros = new ArrayList<>();
+            if (centrosData != null) {
+                for (Centro centro : centrosData) {
+                    centro.convertirCamposAString();
+                    centros.add(centro);
+                }
+                System.out.println("Se cargaron " + centros.size() + " centros desde el JSON");
+            } else {
+                System.out.println("No se encontraron centros en el JSON (null)");
+            }
+
+            reader.close();
+
+        } catch (IOException e) {
+            System.err.println("Error al cargar el archivo JSON: " + e.getMessage());
+            e.printStackTrace();
+            centros = new ArrayList<>();
+        }
+    }
+
+    /**
+     * Convierte todos los campos del centro a String
+     */
+    private void convertirCamposAString() {
+        if (getCCEN() != null) setCCEN(String.valueOf(getCCEN()));
+        if (getNOM() != null) setNOM(String.valueOf(getNOM()));
+        if (getNOME() != null) setNOME(String.valueOf(getNOME()));
+        if (getDGENRC() != null) setDGENRC(String.valueOf(getDGENRC()));
+        if (getDGENRE() != null) setDGENRE(String.valueOf(getDGENRE()));
+        if (getGENR() != null) setGENR(String.valueOf(getGENR()));
+        if (getMUNI() != null) setMUNI(String.valueOf(getMUNI()));
+        if (getDMUNIC() != null) setDMUNIC(String.valueOf(getDMUNIC()));
+        if (getDMUNIE() != null) setDMUNIE(String.valueOf(getDMUNIE()));
+        if (getDTERRC() != null) setDTERRC(String.valueOf(getDTERRC()));
+        if (getDTERRE() != null) setDTERRE(String.valueOf(getDTERRE()));
+        if (getDEPE() != null) setDEPE(String.valueOf(getDEPE()));
+        if (getDTITUC() != null) setDTITUC(String.valueOf(getDTITUC()));
+        if (getDTITUE() != null) setDTITUE(String.valueOf(getDTITUE()));
+        if (getDOMI() != null) setDOMI(String.valueOf(getDOMI()));
+        if (getCPOS() != null) setCPOS(String.valueOf(getCPOS()));
+        if (getTEL1() != null) setTEL1(String.valueOf(getTEL1()));
+        if (getTFAX() != null) setTFAX(String.valueOf(getTFAX()));
+        if (getEMAIL() != null) setEMAIL(String.valueOf(getEMAIL()));
+        if (getPAGINA() != null) setPAGINA(String.valueOf(getPAGINA()));
+        if (getCOOR_X() != null) setCOOR_X(String.valueOf(getCOOR_X()));
+        if (getCOOR_Y() != null) setCOOR_Y(String.valueOf(getCOOR_Y()));
+        if (getLATITUD() != null) setLATITUD(String.valueOf(getLATITUD()));
+        if (getLONGITUD() != null) setLONGITUD(String.valueOf(getLONGITUD()));
+    }
+    /**
+     * Obtiene todos los centros
+     * @return Lista de todos los centros
+     */
+    public static List<Centro> obtenerCentros() {
+        if (centros == null || centros.isEmpty()) {
+            cargarCentrosDesdeJSON();
+        }
+        return (centros == null) ? new ArrayList<>() : centros;
+    }
+
+    /**
+     * Obtiene un centro por su código
+     * @param ccen Código del centro
+     * @return Centro encontrado o null
+     */
+    public static Centro obtenerCentroPorCodigo(String ccen) {
+        return centros.stream()
+                .filter(centro -> centro.getCCEN().equals(ccen))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Obtiene centros por municipio
+     * @param municipio Nombre del municipio
+     * @return Lista de centros del municipio
+     */
+    public static List<Centro> obtenerCentrosPorMunicipio(String municipio) {
+        List<Centro> resultado = new ArrayList<>();
+        for (Centro centro : centros) {
+            if (centro.getDMUNIC() != null && centro.getDMUNIC().equalsIgnoreCase(municipio)) {
+                resultado.add(centro);
+            }
+        }
+        return resultado;
+    }
+
+    /**
+     * Obtiene el número total de centros
+     * @return Número de centros
+     */
+    public static int obtenerNumeroCentros() {
+        return centros.size();
     }
 }
