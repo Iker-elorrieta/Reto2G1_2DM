@@ -296,12 +296,12 @@ public class Centro {
                 '}';
     }
     
-    private static List<Centro> centros;
+    private static List<Centro> centros = new ArrayList<>();
 
     /**
      * Carga los centros desde el archivo JSON usando Gson
      */
-    public static void cargarCentrosDesdeJSON() {
+    public static synchronized void cargarCentrosDesdeJSON() {
         try {
             // Cargar el archivo JSON desde resources
             ClassPathResource resource = new ClassPathResource("EuskadiLatLon.json");
@@ -313,14 +313,16 @@ public class Centro {
             // Deserializar el JSON a un objeto CentrosData
             Centro[] centrosData = gson.fromJson(reader, Centro[].class);
 
-            // Convertir todos los campos a String
-            if (centrosData != null && centrosData != null) {
+            // Inicializar lista y convertir elementos
+            centros = new ArrayList<>();
+            if (centrosData != null) {
                 for (Centro centro : centrosData) {
-                    // Convertir todos los campos a String si no lo son
-                	centro.convertirCamposAString();
+                    centro.convertirCamposAString();
                     centros.add(centro);
                 }
                 System.out.println("Se cargaron " + centros.size() + " centros desde el JSON");
+            } else {
+                System.out.println("No se encontraron centros en el JSON (null)");
             }
 
             reader.close();
@@ -328,6 +330,7 @@ public class Centro {
         } catch (IOException e) {
             System.err.println("Error al cargar el archivo JSON: " + e.getMessage());
             e.printStackTrace();
+            centros = new ArrayList<>();
         }
     }
 
@@ -365,7 +368,10 @@ public class Centro {
      * @return Lista de todos los centros
      */
     public static List<Centro> obtenerCentros() {
-        return centros;
+        if (centros == null || centros.isEmpty()) {
+            cargarCentrosDesdeJSON();
+        }
+        return (centros == null) ? new ArrayList<>() : centros;
     }
 
     /**

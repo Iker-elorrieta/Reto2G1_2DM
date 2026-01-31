@@ -10,6 +10,14 @@ import modelo.Users;
 @RequestMapping("/api")
 public class PerfilController {
 
+    @GetMapping("/login/{usuario}/{password}")
+    public Users login(
+            @PathVariable("usuario") String usuario,
+            @PathVariable("password") String password) {
+
+        return Users.login(usuario, password);
+    }
+
 	@GetMapping("/perfil/{id}")
 	public Users getPerfil(@PathVariable(name = "id") int id) {
         return Users.getPerfil(id);

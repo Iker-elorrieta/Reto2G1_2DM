@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.gson.Gson;
-
 import controlador.ControladorServidor;
 
 public class Users implements Serializable {
@@ -187,7 +185,10 @@ public class Users implements Serializable {
             String json = ControladorServidor.getInstance().obtenerPerfilJson(idUsuario);
 
             if (json != null && !json.isEmpty()) {
-                return new Gson().fromJson(json, Users.class);
+                com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                        .create();
+                return gson.fromJson(json, Users.class);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -202,7 +203,11 @@ public class Users implements Serializable {
 
             if (json == null || json.isEmpty()) return new ArrayList<>();
 
-            Users[] array = new Gson().fromJson(json, Users[].class);
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                    .create();
+            Users[] array = gson.fromJson(json, Users[].class);
+            if (array == null) return new ArrayList<>();
             return Arrays.asList(array);
 
         } catch (Exception e) {
@@ -216,7 +221,11 @@ public class Users implements Serializable {
 
                 if (json == null || json.isEmpty()) return new ArrayList<>();
 
-                Users[] array = new Gson().fromJson(json, Users[].class);
+                com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                        .create();
+                Users[] array = gson.fromJson(json, Users[].class);
+                if (array == null) return new ArrayList<>();
                 return Arrays.asList(array);
 
             } catch (Exception e) {

@@ -61,6 +61,6 @@ public class Alumnos extends JFrame {
     }
 
     public void setBtnDetalles(JButton btnDetalles) {
-        this.btnDetalles = btnDetalles;
-    }
+		this.btnDetalles = btnDetalles;
+	}
 }

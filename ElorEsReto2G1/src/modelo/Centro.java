@@ -32,6 +32,7 @@ public class Centro {
 
             Gson gson = new Gson();
             Centro[] array = gson.fromJson(json, Centro[].class);
+            if (array == null) return new ArrayList<>();
             return Arrays.asList(array);
 
         } catch (Exception e) {

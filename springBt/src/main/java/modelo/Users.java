@@ -52,7 +52,14 @@ public class Users implements java.io.Serializable {
             this.tipos = new Tipos(u.getTipos().getId(), u.getTipos().getName(), u.getTipos().getNameEu());
         }
         this.email = u.getEmail();
-        this.username = u.getUsername();
+        // Intentamos descifrar username si viene cifrado
+        String uname = u.getUsername();
+        try {
+            uname = serverSocket.CryptoUtils.decrypt(uname);
+        } catch (Exception ex) {
+            // fallback: dejamos uname tal cual
+        }
+        this.username = uname;
         this.password = u.getPassword();
         this.nombre = u.getNombre();
         this.apellidos = u.getApellidos();
@@ -288,6 +295,75 @@ public class Users implements java.io.Serializable {
 			return profesores;
 		}
 	}
+
+	// Eliminar usuario por id
+	public static boolean eliminarUsuarioPorId(int idUsuario) {
+		org.hibernate.Transaction tx = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			tx = session.beginTransaction();
+			Users u = session.get(Users.class, idUsuario);
+			if (u == null) return false;
+			session.remove(u);
+			tx.commit();
+			return true;
+		} catch (Exception e) {
+			if (tx != null) tx.rollback();
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	// Crear usuario
+	public static boolean crearUsuario(Users u) {
+		org.hibernate.Transaction tx = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			tx = session.beginTransaction();
+			// Si viene el tipo con id, buscarlo
+			if (u.getTipos() != null && u.getTipos().getId() != null) {
+				Tipos t = session.get(Tipos.class, u.getTipos().getId());
+				u.setTipos(t);
+			}
+			java.sql.Timestamp ahora = new java.sql.Timestamp(System.currentTimeMillis());
+			u.setCreatedAt(ahora);
+			u.setUpdatedAt(ahora);
+			session.persist(u);
+			tx.commit();
+			return true;
+		} catch (Exception e) {
+			if (tx != null) tx.rollback();
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	// Actualizar usuario
+	public static boolean actualizarUsuario(Users u) {
+		org.hibernate.Transaction tx = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			tx = session.beginTransaction();
+			Users existente = session.get(Users.class, u.getId());
+			if (existente == null) return false;
+			if (u.getEmail() != null) existente.setEmail(u.getEmail());
+			if (u.getUsername() != null) existente.setUsername(u.getUsername());
+			if (u.getPassword() != null) existente.setPassword(u.getPassword());
+			if (u.getNombre() != null) existente.setNombre(u.getNombre());
+			if (u.getApellidos() != null) existente.setApellidos(u.getApellidos());
+			if (u.getDni() != null) existente.setDni(u.getDni());
+			if (u.getDireccion() != null) existente.setDireccion(u.getDireccion());
+			if (u.getTelefono1() != null) existente.setTelefono1(u.getTelefono1());
+			if (u.getTelefono2() != null) existente.setTelefono2(u.getTelefono2());
+			if (u.getArgazkiaUrl() != null) existente.setArgazkiaUrl(u.getArgazkiaUrl());
+			existente.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+			session.merge(existente);
+			tx.commit();
+			return true;
+		} catch (Exception e) {
+			if (tx != null) tx.rollback();
+			e.printStackTrace();
+			return false;
+		}
+	}
+
     public static String getTipoUser(int idUsuario) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Users user = session.get(Users.class, idUsuario);

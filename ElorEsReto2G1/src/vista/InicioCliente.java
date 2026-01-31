@@ -17,7 +17,7 @@ public class InicioCliente extends JFrame {
 
 	public InicioCliente() {
 		setTitle("Inicio Cliente");
-		
+
 		setSize(800, 450);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -25,7 +25,7 @@ public class InicioCliente extends JFrame {
 
 		// PANEL CON IMAGEN DE FONDO
 		panelFondo = new JPanel() {
-		
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -54,17 +54,12 @@ public class InicioCliente extends JFrame {
 	}
 
 	public void mostrarMensajeError(String mensaje) {
-		JOptionPane.showMessageDialog(
-			this,
-			mensaje,
-			"Error",
-			JOptionPane.ERROR_MESSAGE
-		);
+		JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
 	}
 
 	public static void main(String[] args) {
-			Controlador controlador = new Controlador();
-			controlador.iniciar();
-	
+		Controlador controlador = new Controlador();
+		controlador.iniciar();
+
 	}
 }

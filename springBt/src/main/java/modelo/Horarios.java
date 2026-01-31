@@ -203,4 +203,30 @@ public class Horarios implements java.io.Serializable {
         return -1; // tipo desconocido
     }
 
+	// Crear horario
+	public static boolean crearHorario(Horarios h) {
+		org.hibernate.Transaction tx = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			tx = session.beginTransaction();
+			if (h.getUsers() != null && h.getUsers().getId() != null) {
+				Users u = session.get(Users.class, h.getUsers().getId());
+				h.setUsers(u);
+			}
+			if (h.getModulos() != null && h.getModulos().getId() != null) {
+				Modulos m = session.get(Modulos.class, h.getModulos().getId());
+				h.setModulos(m);
+			}
+			java.sql.Timestamp ahora = new java.sql.Timestamp(System.currentTimeMillis());
+			h.setCreatedAt(ahora);
+			h.setUpdatedAt(ahora);
+			session.persist(h);
+			tx.commit();
+			return true;
+		} catch (Exception e) {
+			if (tx != null) tx.rollback();
+			e.printStackTrace();
+			return false;
+		}
+	} 
+
 }

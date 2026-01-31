@@ -41,6 +41,25 @@ public class Reuniones implements Serializable {
 	private Timestamp createdAt;
 	private Timestamp updatedAt;
 
+	// Estados permitidos (exactos, en minúsculas)
+	public static final String EST_PENDIENTE = "pendiente";
+	public static final String EST_ACEPTADA = "aceptada";
+	public static final String EST_DENEGADA = "denegada";
+	public static final String EST_CONFLICTO = "conflicto";
+
+	public static boolean isValidEstado(String e) {
+		if (e == null) return false;
+		switch (e) {
+			case EST_PENDIENTE:
+			case EST_ACEPTADA:
+			case EST_DENEGADA:
+			case EST_CONFLICTO:
+				return true;
+			default:
+				return false;
+		}
+	}
+
 	public Reuniones() {
 	}
 
@@ -90,7 +109,15 @@ public class Reuniones implements Serializable {
 	}
 
 	public void setEstado(String estado) {
-		this.estado = estado;
+		if (estado == null) {
+			this.estado = null;
+			return;
+		}
+		String normalized = estado.trim().toLowerCase();
+		if (!isValidEstado(normalized)) {
+			throw new IllegalArgumentException("Estado inválido: " + estado + ". Valores permitidos: pendiente, aceptada, denegada, conflicto");
+		}
+		this.estado = normalized;
 	}
 
 	public String getEstadoEus() {
@@ -191,6 +218,44 @@ public class Reuniones implements Serializable {
 			setAlumno(alumno);
 			setProfesor(profesor);
 
+			// Verificar conflictos con horario y otras reuniones del profesor
+			boolean conflicto = false;
+			if (getFecha() != null && profesor != null) {
+				java.time.LocalDateTime dt = getFecha().toLocalDateTime();
+				int hora = dt.getHour(); // hora real (08..20)
+				int bloque = hora - 7; // convertir hora real a bloque 1..6 (ej. 8->1)
+				String dia = switch (dt.getDayOfWeek().name()) {
+					case "MONDAY" -> "LUNES";
+					case "TUESDAY" -> "MARTES";
+					case "WEDNESDAY" -> "MIERCOLES";
+					case "THURSDAY" -> "JUEVES";
+					case "FRIDAY" -> "VIERNES";
+					default -> "";
+				};
+
+				if (!dia.isEmpty()) {
+					// Horarios que coinciden (solo si bloque válido 1..6)
+					if (bloque >= 1 && bloque <= 6) {
+						List<Horarios> hs = session.createQuery(
+							"SELECT h FROM Horarios h WHERE h.users = :prof AND h.dia = :dia AND h.hora = :hora",
+							Horarios.class).setParameter("prof", profesor).setParameter("dia", dia)
+								.setParameter("hora", (byte) bloque).getResultList();
+						if (hs != null && !hs.isEmpty()) conflicto = true;
+					}
+
+					// Reuniones que coinciden exactamente en la misma fecha/hora
+					List<Reuniones> otras = session.createQuery(
+						"SELECT r FROM Reuniones r WHERE r.profesor = :prof AND r.fecha = :fecha",
+						Reuniones.class).setParameter("prof", profesor).setParameter("fecha", getFecha())
+							.getResultList();
+					if (otras != null && !otras.isEmpty()) conflicto = true;
+				}
+			}
+
+// Establecer estado según conflicto (usar valores exactos en minúsculas)
+		if (conflicto) setEstado(EST_CONFLICTO);
+		else if (getEstado() == null || getEstado().isBlank()) setEstado(EST_PENDIENTE);
+
 			// 🔹 Timestamps
 			Timestamp ahora = new Timestamp(System.currentTimeMillis());
 			setCreatedAt(ahora);
@@ -221,4 +286,63 @@ public class Reuniones implements Serializable {
 		}
 	}
 
+        public static boolean eliminarReunionPorId(int idReunion) {
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            Reuniones r = session.get(Reuniones.class, idReunion);
+            if (r == null) return false;
+            session.remove(r);
+            tx.commit();
+            return true;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Actualizar reunión
+    public static boolean actualizarReunion(Reuniones r) {
+        // Validar estado antes de abrir transacción para que, en caso de inválido,
+        // pueda lanzarse IllegalArgumentException y ser manejado por el controlador.
+        if (r.getEstado() != null) {
+            String estadoNorm = r.getEstado().trim().toLowerCase();
+            if (!isValidEstado(estadoNorm)) {
+                throw new IllegalArgumentException("Estado inválido: " + r.getEstado());
+            }
+        }
+
+        org.hibernate.Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            Reuniones existente = session.get(Reuniones.class, r.getIdReunion());
+            if (existente == null) return false;
+
+            if (r.getEstado() != null) existente.setEstado(r.getEstado());
+            if (r.getEstadoEus() != null) existente.setEstadoEus(r.getEstadoEus());
+            if (r.getIdCentro() != null) existente.setIdCentro(r.getIdCentro());
+            if (r.getTitulo() != null) existente.setTitulo(r.getTitulo());
+            if (r.getAsunto() != null) existente.setAsunto(r.getAsunto());
+            if (r.getAula() != null) existente.setAula(r.getAula());
+            if (r.getFecha() != null) existente.setFecha(r.getFecha());
+
+            if (r.getIdAlumno() != null) {
+                Users alumno = session.get(Users.class, r.getIdAlumno());
+                existente.setAlumno(alumno);
+            }
+            if (r.getIdProfesor() != null) {
+                Users profesor = session.get(Users.class, r.getIdProfesor());
+                existente.setProfesor(profesor);
+            }
+
+            session.merge(existente);
+            tx.commit();
+            return true;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.gson.Gson;
-
 
 public class Horarios implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -122,8 +120,11 @@ public class Horarios implements Serializable {
 
 	        if (json == null || json.isEmpty()) return new ArrayList<>();
 
-	        Gson gson = new Gson();
-	        Horarios[] array = gson.fromJson(json, Horarios[].class);
+com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                .create();
+        Horarios[] array = gson.fromJson(json, Horarios[].class);
+        if (array == null) return new ArrayList<>();
 	        return Arrays.asList(array);
 
 	    } catch (Exception e) {

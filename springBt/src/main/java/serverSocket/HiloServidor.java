@@ -27,6 +27,7 @@ public class HiloServidor extends Thread {
         this.conx = conx;
 
         this.gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
                 .setExclusionStrategies(new HibernateProxyExclusionStrategy())
                 .create();
     }
@@ -55,6 +56,14 @@ public class HiloServidor extends Thread {
                         case "LOGIN": {
                             String usuario = entrada.readUTF();
                             String password = entrada.readUTF();
+
+                            // Desciframos las credenciales recibidas
+                            try {
+                                usuario = CryptoUtils.decrypt(usuario);
+                                password = CryptoUtils.decrypt(password);
+                            } catch (Exception ex) {
+                                // si hay fallo, usamos los valores tal cual
+                            }
 
                             Users user = Users.login(usuario, password);
 
@@ -149,14 +158,64 @@ public class HiloServidor extends Thread {
 
                         // ================= CREAR_REUNION =================
                         case "CREAR_REUNION": {
-                            String jsonReunion = entrada.readUTF();
-                            Reuniones reunion = gson.fromJson(jsonReunion, Reuniones.class);
+                            try {
+                                String jsonReunion = entrada.readUTF();
+                                Reuniones reunion = gson.fromJson(jsonReunion, Reuniones.class);
 
-                            boolean creada = reunion.crearReunion();
-                            salida.writeBoolean(creada);
-                            salida.flush();
+                                boolean creada = false;
+                                try {
+                                    creada = reunion.crearReunion();
+                                } catch (Exception inner) {
+                                    inner.printStackTrace();
+                                    creada = false;
+                                }
 
-                            System.out.println("Reunión " + (creada ? "creada" : "fallida") + ": " + reunion.getTitulo());
+                                salida.writeBoolean(creada);
+                                salida.flush();
+
+                                System.out.println("Reunión " + (creada ? "creada" : "fallida") + ": " + reunion.getTitulo());
+                            } catch (Exception ex) {
+                                // Error procesando petición -> intentar responder false y continuar
+                                ex.printStackTrace();
+                                try {
+                                    salida.writeBoolean(false);
+                                    salida.flush();
+                                } catch (Exception ioex) {
+                                    ioex.printStackTrace();
+                                }
+                                activo = false;
+                            }
+                            break;
+                        }
+
+                        // ================= MODIFICAR_REUNION =================
+                        case "MODIFICAR_REUNION": {
+                            try {
+                                String jsonReunion = entrada.readUTF();
+                                Reuniones reunion = gson.fromJson(jsonReunion, Reuniones.class);
+
+                                boolean modificado = false;
+                                try {
+                                    modificado = Reuniones.actualizarReunion(reunion);
+                                } catch (Exception inner) {
+                                    inner.printStackTrace();
+                                    modificado = false;
+                                }
+
+                                salida.writeBoolean(modificado);
+                                salida.flush();
+
+                                System.out.println("Reunión " + (modificado ? "modificada" : "fallida") + ": id=" + reunion.getIdReunion());
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                                try {
+                                    salida.writeBoolean(false);
+                                    salida.flush();
+                                } catch (Exception ioex) {
+                                    ioex.printStackTrace();
+                                }
+                                activo = false;
+                            }
                             break;
                         }
 
@@ -195,8 +254,8 @@ public class HiloServidor extends Thread {
                     }
 
                 } catch (Exception e) {
-                    System.out.println("Error procesando comando: " + e.getMessage());
-                    e.printStackTrace();
+                   // System.out.println("Error procesando comando: " + e.getMessage());
+                   // e.printStackTrace();
                     activo = false;
                 }
             }

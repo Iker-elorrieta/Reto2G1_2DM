@@ -31,4 +31,10 @@ public class HorarioController {
         return ResponseEntity.ok(horarios);
     }
 
+    @PostMapping("/crear")
+    public ResponseEntity<Boolean> crearHorario(@RequestBody Horarios horario) {
+        boolean creado = Horarios.crearHorario(horario);
+        return ResponseEntity.ok(creado);
+    }
+
 }

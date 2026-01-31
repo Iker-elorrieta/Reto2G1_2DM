@@ -15,7 +15,7 @@ public class OtrosHorarios extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private java.util.List<Users> profesores;
-    private final JComboBox<String> comboProfesores;
+    private JComboBox<String> comboProfesores;
     private JButton btnVerHorario;
     private JButton btnVolver;
 
@@ -63,12 +63,12 @@ public class OtrosHorarios extends JFrame {
     }
 
     public void setProfesores(java.util.List<Users> profesores) {
+        // Solo guardamos la lista; la UI la debe poblar el controlador mediante getComboProfesores()
         this.profesores = profesores;
-        comboProfesores.removeAllItems();
-        if (profesores == null) return;
-        for (Users docente : profesores) {
-            comboProfesores.addItem(docente.getNombre() + " " + docente.getApellidos());
-        }
+    }
+
+    public javax.swing.JComboBox<String> getComboProfesores() {
+        return comboProfesores;
     }
 
     public JButton getBtnVerHorario() {

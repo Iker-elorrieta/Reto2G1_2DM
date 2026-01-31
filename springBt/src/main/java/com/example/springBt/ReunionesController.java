@@ -3,9 +3,11 @@ package com.example.springBt;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,12 +20,32 @@ public class ReunionesController {
 
     @PostMapping("/crear")
     public ResponseEntity<Boolean> crearReunion(@RequestBody Reuniones reunion) {
-        boolean creada = reunion.crearReunion();
-        return ResponseEntity.ok(creada);
+        try {
+            boolean creada = reunion.crearReunion();
+            return ResponseEntity.ok(creada);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(false);
+        }
     }
 
     @GetMapping("/profesor/{idProfesor}")
     public List<Reuniones> getReunionesProfesor(@PathVariable int idProfesor) {
         return Reuniones.obtenerReunionesProfesor(idProfesor);
+    }
+
+    @DeleteMapping("/eliminar/{id}")
+    public ResponseEntity<Boolean> eliminarReunion(@PathVariable int id) {
+        boolean eliminado = Reuniones.eliminarReunionPorId(id);
+        return ResponseEntity.ok(eliminado);
+    }
+
+    @PutMapping("/modificar")
+    public ResponseEntity<Boolean> modificarReunion(@RequestBody Reuniones reunion) {
+        try {
+            boolean modificado = Reuniones.actualizarReunion(reunion);
+            return ResponseEntity.ok(modificado);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(false);
+        }
     }
 }
