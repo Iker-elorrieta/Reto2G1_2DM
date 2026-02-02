@@ -33,18 +33,18 @@ public class Login extends JFrame {
 		setLocationRelativeTo(null);
 		setResizable(false);
 
-	// PANEL PRINCIPAL CON IMAGEN DE FONDO
-	panelContenido = new JPanel() {
+		// PANEL PRINCIPAL CON IMAGEN DE FONDO
+		panelContenido = new JPanel() {
 
-		private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = 1L;
 
-		@Override
-		protected void paintComponent(Graphics g) {
-			super.paintComponent(g);
-			Image img = new ImageIcon(getClass().getClassLoader().getResource("fondo2.jpg")).getImage();
-			g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
-		}
-	};
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				Image img = new ImageIcon(getClass().getClassLoader().getResource("fondo2.jpg")).getImage();
+				g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
+			}
+		};
 		panelContenido.setLayout(null);
 		setContentPane(panelContenido);
 
@@ -94,7 +94,7 @@ public class Login extends JFrame {
 		botonVer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evento) {
 				contrasenaVisible = !contrasenaVisible;
-				campoContrasena.setEchoChar(contrasenaVisible ? (char) 0 : '◉' );
+				campoContrasena.setEchoChar(contrasenaVisible ? (char) 0 : '◉');
 			}
 		});
 

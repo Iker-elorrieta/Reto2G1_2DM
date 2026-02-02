@@ -1,14 +1,13 @@
 package vista;
 
-import java.awt.*;
-import java.time.LocalDateTime;
-import java.util.List;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
+import java.awt.BorderLayout;
 
-import modelo.Horarios;
-import modelo.Reuniones;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableModel; 
 
 public class VerReuniones extends JFrame {
 
@@ -17,292 +16,90 @@ public class VerReuniones extends JFrame {
     private JTable tablaPendientes;
     private JButton btnVolver;
 
-    private int idProfesor;
-
-    public VerReuniones(int idProfesor) {
-
-        this.idProfesor = idProfesor;
+	public VerReuniones() {
 
         setTitle("Reuniones del Profesor");
         setSize(1000, 700);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
 
-        // Panel superior
-        JPanel panelTop = new JPanel(new BorderLayout());
-        panelTop.setBorder(new EmptyBorder(10, 10, 10, 10));
+        // Componentes iniciales vacíos (columna Hora + LUNES..VIERNES)
+        String[] dias = { "Hora", "LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES" };
+        int rows = (20 - 8) + 1; // coincide con MIN_HOUR..MAX_HOUR por defecto (08:00..20:00)
+        tablaHorario = new JTable(new String[rows][dias.length], dias);
+        tablaHorario.setRowHeight(60);
+        tablaPendientes = new JTable(new Object[0][5], new String[]{"ID","Alumno","Título","Fecha","Estado"});
+        tablaPendientes.setRowHeight(30);
 
-        JLabel titulo = new JLabel("Gestión de Reuniones del Profesor", SwingConstants.CENTER);
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        panelTop.add(titulo, BorderLayout.CENTER);
-
+        // Botón volver
         btnVolver = new JButton("⬅ Volver");
-        btnVolver.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnVolver.setBackground(new Color(70, 130, 180));
-        btnVolver.setForeground(Color.WHITE);
-        btnVolver.setFocusPainted(false);
-        panelTop.add(btnVolver, BorderLayout.WEST);
 
-        add(panelTop, BorderLayout.NORTH);
-
-        // 1. Cargar datos
-        List<Horarios> horario = Horarios.obtenerHorarioREST(idProfesor);
-        List<Reuniones> reuniones = Reuniones.obtenerReunionesProfesorREST(idProfesor);
-
-        // 2. Crear horario base usando la clase Horario
-        Horario vistaHorario = new Horario(horario, "Horario del Profesor");
-        tablaHorario = vistaHorario.getTabla();
-
-        // 3. Añadir reuniones encima del horario
-        pintarReunionesEnHorario(tablaHorario, reuniones);
-
-        // 4. Activar renderer de colores
-        tablaHorario.setDefaultRenderer(Object.class, new ColorRenderer());
-
-        JScrollPane scrollHorario = new JScrollPane(tablaHorario);
-        scrollHorario.setBorder(new EmptyBorder(10, 10, 10, 10));
-        add(scrollHorario, BorderLayout.CENTER);
-
-        // 5. Crear tabla de pendientes
-        tablaPendientes = construirTablaPendientes(reuniones);
-        aplicarRenderersYEditores(); // ← AHORA tablaPendientes ya existe
-
-        JScrollPane scrollPendientes = new JScrollPane(tablaPendientes);
-        scrollPendientes.setBorder(new EmptyBorder(10, 10, 10, 10));
-        add(scrollPendientes, BorderLayout.SOUTH);
+        // Añadir componentes
+        add(new JScrollPane(tablaHorario), BorderLayout.CENTER);
+        add(new JScrollPane(tablaPendientes), BorderLayout.SOUTH);
+        add(btnVolver, BorderLayout.NORTH);
     }
 
-    // ============================================================
-    // AÑADIR REUNIONES ENCIMA DEL HORARIO
-    // ============================================================
+    public void setHorarioModel(TableModel modelo) {
+        tablaHorario.setModel(modelo);
+        tablaHorario.setRowHeight(60);
 
-    private void pintarReunionesEnHorario(JTable tabla, List<Reuniones> reuniones) {
+        // Renderer centrado para las columnas de contenido
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        centerRenderer.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+        tablaHorario.setDefaultRenderer(Object.class, centerRenderer);
 
-        for (Reuniones r : reuniones) {
+        // Resaltar y centrar la columna Hora
+        DefaultTableCellRenderer horaRenderer = new DefaultTableCellRenderer();
+        horaRenderer.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        horaRenderer.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+        horaRenderer.setFont(horaRenderer.getFont().deriveFont(java.awt.Font.BOLD));
+        tablaHorario.getColumnModel().getColumn(0).setCellRenderer(horaRenderer);
+        tablaHorario.getColumnModel().getColumn(0).setPreferredWidth(60);
 
-            LocalDateTime dt = r.getFecha().toLocalDateTime();
-
-            int fila = dt.getHour() - 1;
-            int col = diaAColumna(convertirDia(dt.getDayOfWeek().name()));
-
-            if (fila < 0 || fila >= 6 || col < 0) continue;
-
-            String actual = tabla.getValueAt(fila, col).toString();
-            String estado = r.getEstado();
-
-            String reunionHTML = "<br><b>Reunión</b>";
-
-            if (estado.equalsIgnoreCase("Pendiente"))
-                reunionHTML += " <span style='color:orange'>(Pendiente)</span>";
-            if (estado.equalsIgnoreCase("Aceptada"))
-                reunionHTML += " <span style='color:green'>(Aceptada)</span>";
-            if (estado.equalsIgnoreCase("Denegada"))
-                reunionHTML += " <span style='color:red'>(Denegada)</span>";
-
-            if (!actual.contains("Libre")) {
-                reunionHTML = "<br><span style='color:gray'>(Conflicto)</span>" + reunionHTML;
-            }
-
-            tabla.setValueAt(
-                actual.replace("</body></html>", "") + reunionHTML + "</body></html>",
-                fila, col
-            );
-        }
-    }
-
-    private String convertirDia(String dayOfWeek) {
-        return switch (dayOfWeek) {
-            case "MONDAY" -> "LUNES";
-            case "TUESDAY" -> "MARTES";
-            case "WEDNESDAY" -> "MIERCOLES";
-            case "THURSDAY" -> "JUEVES";
-            case "FRIDAY" -> "VIERNES";
-            default -> "";
-        };
-    }
-
-    private int diaAColumna(String dia) {
-        return switch (dia.toUpperCase()) {
-            case "LUNES" -> 0;
-            case "MARTES" -> 1;
-            case "MIERCOLES" -> 2;
-            case "JUEVES" -> 3;
-            case "VIERNES" -> 4;
-            default -> -1;
-        };
-    }
-
-    // ============================================================
-    // TABLA DE REUNIONES PENDIENTES
-    // ============================================================
-
-    private JTable construirTablaPendientes(List<Reuniones> reuniones) {
-
-        String[] columnas = {"ID", "Alumno", "Título", "Fecha", "Estado", "Aceptar", "Rechazar"};
-
-        List<Reuniones> pendientes = reuniones.stream()
-                .filter(r -> r.getEstado().equalsIgnoreCase("Pendiente"))
-                .toList();
-
-        Object[][] datos = new Object[pendientes.size()][7];
-
-        for (int i = 0; i < pendientes.size(); i++) {
-            Reuniones r = pendientes.get(i);
-            datos[i][0] = r.getIdReunion();
-            datos[i][1] = r.getAlumnoNombre();
-            datos[i][2] = r.getTitulo();
-            datos[i][3] = r.getFecha();
-            datos[i][4] = r.getEstado();
-            datos[i][5] = "Aceptar";
-            datos[i][6] = "Rechazar";
+        // Ajustar ancho de columnas de días
+        for (int i = 1; i < tablaHorario.getColumnCount(); i++) {
+            tablaHorario.getColumnModel().getColumn(i).setPreferredWidth(160);
         }
 
-        ModeloPendientes modelo = new ModeloPendientes(datos, columnas);
-        JTable tabla = new JTable(modelo);
-
-        tabla.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        tabla.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 15));
-        tabla.setRowHeight(32);
-        tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        return tabla;
+        rebuildLayout();
     }
 
-    // ============================================================
-    // APLICAR RENDERERS Y EDITORES
-    // ============================================================
+    public void setPendientesModel(TableModel modelo) {
+        tablaPendientes.setModel(modelo);
+        tablaPendientes.setRowHeight(30);
 
-    private void aplicarRenderersYEditores() {
-        tablaPendientes.getColumn("Aceptar").setCellRenderer(new ButtonRenderer());
-        tablaPendientes.getColumn("Aceptar").setCellEditor(new ButtonEditor("Aceptada"));
+        // Centrar textos de la tabla de pendientes
+        javax.swing.table.DefaultTableCellRenderer rendererPendientes = new javax.swing.table.DefaultTableCellRenderer();
+        rendererPendientes.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        rendererPendientes.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+        tablaPendientes.setDefaultRenderer(Object.class, rendererPendientes);
 
-        tablaPendientes.getColumn("Rechazar").setCellRenderer(new ButtonRenderer());
-        tablaPendientes.getColumn("Rechazar").setCellEditor(new ButtonEditor("Denegada"));
+        rebuildLayout();
     }
 
-    // ============================================================
-    // RENDERER DE COLORES
-    // ============================================================
-
-    private class ColorRenderer extends javax.swing.table.DefaultTableCellRenderer {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public java.awt.Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected,
-                boolean hasFocus, int row, int column) {
-
-            java.awt.Component c = super.getTableCellRendererComponent(
-                    table, value, isSelected, hasFocus, row, column);
-
-            String txt = value != null ? value.toString() : "";
-
-            if (txt.contains("Conflicto")) c.setBackground(Color.LIGHT_GRAY);
-            else if (txt.contains("Aceptada")) c.setBackground(new Color(144, 238, 144));
-            else if (txt.contains("Denegada")) c.setBackground(new Color(255, 160, 122));
-            else if (txt.contains("Pendiente")) c.setBackground(new Color(255, 215, 0));
-            else c.setBackground(Color.WHITE);
-
-            return c;
-        }
+    // Permite que el controlador agregue listeners y acceda a la tabla de pendientes
+    public javax.swing.JTable getTablaPendientes() {
+        return tablaPendientes;
     }
 
-    // ============================================================
-    // BOTÓN RENDERER
-    // ============================================================
-
-    private class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
-        private static final long serialVersionUID = 1L;
-
-        public ButtonRenderer() {
-            setOpaque(true);
-            setFont(new Font("Segoe UI", Font.BOLD, 13));
-            setBackground(new Color(70, 130, 180));
-            setForeground(Color.WHITE);
-        }
-
-        @Override
-        public java.awt.Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-
-            setText(value != null ? value.toString() : "");
-            return this;
-        }
+    // Permite que el controlador agregue listeners al botón Volver
+    public javax.swing.JButton getBtnVolver() {
+        return btnVolver;
     }
 
-    // ============================================================
-    // BOTÓN EDITOR
-    // ============================================================
-
-    private class ButtonEditor extends javax.swing.DefaultCellEditor {
-        private static final long serialVersionUID = 1L;
-        private JButton btn;
-        private String action;
-
-        public ButtonEditor(String action) {
-            super(new JTextField());
-            this.action = action;
-
-            btn = new JButton(action);
-            btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            btn.setBackground(new Color(46, 139, 87));
-            btn.setForeground(Color.WHITE);
-            btn.setFocusPainted(false);
-
-            btn.addActionListener(e -> fireEditingStopped());
-        }
-
-        @Override
-        public java.awt.Component getTableCellEditorComponent(
-                JTable table, Object value, boolean isSelected, int row, int column) {
-
-            btn.addActionListener(e -> {
-                int idReunion = (int) table.getValueAt(row, 0);
-                Reuniones.actualizarEstadoREST(idReunion, action);
-                recargarDatos();
-            });
-
-            return btn;
-        }
+    private void rebuildLayout() {
+        getContentPane().removeAll();
+        add(new JScrollPane(tablaHorario), BorderLayout.CENTER);
+        add(new JScrollPane(tablaPendientes), BorderLayout.SOUTH);
+        add(btnVolver, BorderLayout.NORTH);
+        revalidate();
+        repaint();
     }
 
-    // ============================================================
-    // RECARGAR DATOS
-    // ============================================================
 
-    private void recargarDatos() {
-        List<Horarios> horario = Horarios.obtenerHorarioREST(idProfesor);
-        List<Reuniones> reuniones = Reuniones.obtenerReunionesProfesorREST(idProfesor);
 
-        // reconstruir horario
-        Horario vistaHorario = new Horario(horario, "Horario del Profesor");
-        tablaHorario.setModel(vistaHorario.getTabla().getModel());
-        tablaHorario.setDefaultRenderer(Object.class, new ColorRenderer());
-        pintarReunionesEnHorario(tablaHorario, reuniones);
-
-        // reconstruir tabla pendientes SIN crear JTable nueva
-        DefaultTableModel nuevoModelo = (DefaultTableModel) construirTablaPendientes(reuniones).getModel();
-        tablaPendientes.setModel(nuevoModelo);
-
-        aplicarRenderersYEditores();
-    }
-
-    // ============================================================
-    // MODELO EDITABLE SOLO EN BOTONES
-    // ============================================================
-
-    private class ModeloPendientes extends DefaultTableModel {
-
-        private static final long serialVersionUID = 1L;
-
-		public ModeloPendientes(Object[][] data, Object[] columnNames) {
-            super(data, columnNames);
-        }
-
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return column == 5 || column == 6;
-        }
-    }
 }
+

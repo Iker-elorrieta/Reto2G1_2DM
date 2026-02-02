@@ -6,10 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import controlador.HttpClientHelper;
+import controlador.ControladorServidor;
 
 public class Reuniones implements Serializable {
 
@@ -20,8 +17,6 @@ public class Reuniones implements Serializable {
     // Enviar solo IDs al backend
     private Integer idAlumno;
     private Integer idProfesor;
-    private String alumnoNombre;
-    private String profesorNombre;
 
     private String estado;
     private String estadoEus;
@@ -32,6 +27,25 @@ public class Reuniones implements Serializable {
     private Timestamp fecha;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+
+    // Estados permitidos
+    public static final String EST_PENDIENTE = "pendiente";
+    public static final String EST_ACEPTADA = "aceptada";
+    public static final String EST_DENEGADA = "denegada";
+    public static final String EST_CONFLICTO = "conflicto";
+
+    public static boolean isValidEstado(String e) {
+        if (e == null) return false;
+        switch (e) {
+            case EST_PENDIENTE:
+            case EST_ACEPTADA:
+            case EST_DENEGADA:
+            case EST_CONFLICTO:
+                return true;
+            default:
+                return false;
+        }
+    }
 
     public Reuniones() {}
 
@@ -50,8 +64,6 @@ public class Reuniones implements Serializable {
         this.fecha = fecha;
     }
 
-    public String getAlumnoNombre() { return alumnoNombre; }
-    public void setAlumnoNombre(String alumnoNombre) { this.alumnoNombre = alumnoNombre; }
     public Integer getIdReunion() { return idReunion; }
     public void setIdReunion(Integer idReunion) { this.idReunion = idReunion; }
 
@@ -62,7 +74,14 @@ public class Reuniones implements Serializable {
     public void setIdProfesor(Integer idProfesor) { this.idProfesor = idProfesor; }
 
     public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public void setEstado(String estado) {
+        if (estado == null) { this.estado = null; return; }
+        String normalized = estado.trim().toLowerCase();
+        if (!isValidEstado(normalized)) {
+            throw new IllegalArgumentException("Estado inválido: " + estado + ". Valores permitidos: pendiente, aceptada, denegada, conflicto");
+        }
+        this.estado = normalized;
+    }
 
     public String getEstadoEus() { return estadoEus; }
     public void setEstadoEus(String estadoEus) { this.estadoEus = estadoEus; }
@@ -87,22 +106,10 @@ public class Reuniones implements Serializable {
 
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
-    
-    public String getProfesorNombre() { return profesorNombre; }
-    public void setProfesorNombre(String profesorNombre) { this.profesorNombre = profesorNombre; }
 
-    public static boolean crearReunionREST(Reuniones reunion) {
+    public static boolean crearReunion(Reuniones reunion) {
         try {
-            Gson gson = new GsonBuilder()
-                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-                    .create();
-
-            String json = gson.toJson(reunion);
-
-            String respuesta = HttpClientHelper.postJson("reuniones/crear", json);
-
-            return Boolean.parseBoolean(respuesta);
-
+            return ControladorServidor.getInstance().crearReunion(reunion);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -111,27 +118,22 @@ public class Reuniones implements Serializable {
 
     
     
-    public static List<Reuniones> obtenerReunionesProfesorREST(int idProfesor) {
+    public static List<Reuniones> obtenerReunionesProfesor(int idProfesor) {
         try {
-            
-        	String json = HttpClientHelper.get("reuniones/profesor/" + idProfesor);
+            String json = ControladorServidor.getInstance().obtenerReunionesProfesorJson(idProfesor);
 
+            if (json == null || json.isEmpty()) return new ArrayList<>();
 
-            Gson gson = new Gson();
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                    .create();
             Reuniones[] array = gson.fromJson(json, Reuniones[].class);
+            if (array == null) return new ArrayList<>();
             return Arrays.asList(array);
 
         } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();
-        }
-    }
-    public static void actualizarEstadoREST(int idReunion, String nuevoEstado) {
-        try {
-            String json = "{\"idReunion\":" + idReunion + ",\"estado\":\"" + nuevoEstado + "\"}";
-            HttpClientHelper.postJson("reuniones/actualizar", json);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

@@ -15,40 +15,29 @@ public class Alumnos extends JFrame {
     private static final long serialVersionUID = 1L;
     private final List<Users> alumnos;
     private final JList<String> listaAlumnos;
-        private JButton btnVolver;
-        private JButton btnDetalles;
+    private JButton btnVolver;
+    private JButton btnDetalles;
 
-    public Alumnos(List<Users> alumnos) {
+    public Alumnos(List<Users> alumnos, DefaultListModel<String> modeloLista) {
         this.alumnos = alumnos;
         setTitle("Lista de Alumnos");
         setSize(500, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-        DefaultListModel<String> modeloLista = new DefaultListModel<>();
-
-        for (Users alumno : alumnos) {
-            modeloLista.addElement(alumno.getId() + " - " + alumno.getNombre() + " " + alumno.getApellidos());
-        }
         getContentPane().setLayout(null);
-
         listaAlumnos = new JList<>(modeloLista);
         listaAlumnos.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-
         JScrollPane panelDesplazable = new JScrollPane(listaAlumnos);
         panelDesplazable.setBounds(0, 0, 484, 530);
         getContentPane().add(panelDesplazable);
-
-		btnVolver = new JButton("<--Volver");
+        btnVolver = new JButton("<--Volver");
         btnVolver.setBounds(0, 530, 241, 31);
         btnVolver.setFont(new Font("Segoe UI", Font.BOLD, 16));
         getContentPane().add(btnVolver);
-        
-		btnDetalles = new JButton("Ver detalles");
+        btnDetalles = new JButton("Ver detalles");
         btnDetalles.setFont(new Font("Segoe UI", Font.BOLD, 16));
         btnDetalles.setBounds(243, 530, 241, 31);
         getContentPane().add(btnDetalles);
-        
     }
 
 	public Users getSelectedAlumno() {
@@ -72,6 +61,6 @@ public class Alumnos extends JFrame {
     }
 
     public void setBtnDetalles(JButton btnDetalles) {
-        this.btnDetalles = btnDetalles;
-    }
+		this.btnDetalles = btnDetalles;
+	}
 }
