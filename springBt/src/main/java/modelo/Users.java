@@ -3,8 +3,12 @@ package modelo;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.hibernate.Session;
+
+import com.example.springBt.HibernateUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
@@ -12,208 +16,361 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class Users implements java.io.Serializable {
 
-/**
-*
-*/
-private static final long serialVersionUID = 1L;
-private Integer id;
-private Tipos tipos;
-private String email;
-private String username;
-private String password;
-private String nombre;
-private String apellidos;
-private String dni;
-private String direccion;
-private String telefono1;
-private String telefono2;
-private String argazkiaUrl;
-private Timestamp createdAt;
-private Timestamp updatedAt;
-@JsonIgnore
-private Set<Matriculaciones> matriculacioneses = new HashSet<>();
-@JsonIgnore
-private Set<Reuniones> reunionesesForAlumnoId = new HashSet<>();
-@JsonIgnore
-private Set<Horarios> horarioses = new HashSet<>();
-@JsonIgnore
-private Set<Reuniones> reunionesesForProfesorId = new HashSet<>();
+	/**
+	*
+	*/
+	private static final long serialVersionUID = 1L;
+	private Integer id;
+	private Tipos tipos;
+	private String email;
+	private String username;
+	private String password;
+	private String nombre;
+	private String apellidos;
+	private String dni;
+	private String direccion;
+	private String telefono1;
+	private String telefono2;
+	private String argazkiaUrl;
+	private Timestamp createdAt;
+	private Timestamp updatedAt;
+	@JsonIgnore
+	private Set<Matriculaciones> matriculacioneses = new HashSet<>();
+	@JsonIgnore
+	private Set<Reuniones> reunionesesForAlumnoId = new HashSet<>();
+	@JsonIgnore
+	private Set<Horarios> horarioses = new HashSet<>();
+	@JsonIgnore
+	private Set<Reuniones> reunionesesForProfesorId = new HashSet<>();
 
-public Users() {
-}
+	public Users() {
+	}
+	
+	public Users(Users u) {
+        this.id = u.getId();
+        if (u.getTipos() != null) {
+            this.tipos = new Tipos(u.getTipos().getId(), u.getTipos().getName(), u.getTipos().getNameEu());
+        }
+        this.email = u.getEmail();
+        // Intentamos descifrar username si viene cifrado
+        String uname = u.getUsername();
+        try {
+            uname = serverSocket.CryptoUtils.decrypt(uname);
+        } catch (Exception ex) {
+            // fallback: dejamos uname tal cual
+        }
+        this.username = uname;
+        this.password = u.getPassword();
+        this.nombre = u.getNombre();
+        this.apellidos = u.getApellidos();
+        this.dni = u.getDni();
+        this.direccion = u.getDireccion();
+        this.telefono1 = u.getTelefono1();
+        this.telefono2 = u.getTelefono2();
+        this.argazkiaUrl = u.getArgazkiaUrl();
+        this.createdAt = u.getCreatedAt();
+        this.updatedAt = u.getUpdatedAt();
+    }
 
-public Users(Tipos tipos, String email, String username, String password) {
-this.tipos = tipos;
-this.email = email;
-this.username = username;
-this.password = password;
-}
+	public Users(Tipos tipos, String email, String username, String password) {
+		this.tipos = tipos;
+		this.email = email;
+		this.username = username;
+		this.password = password;
+	}
 
-public Users(Tipos tipos, String email, String username, String password, String nombre, String apellidos,
-String dni, String direccion, String telefono1, String telefono2, String argazkiaUrl, Timestamp createdAt,
-Timestamp updatedAt, Set<Matriculaciones> matriculacioneses, Set<Reuniones> reunionesesForAlumnoId,
-Set<Horarios> horarioses, Set<Reuniones> reunionesesForProfesorId) {
-this.tipos = tipos;
-this.email = email;
-this.username = username;
-this.password = password;
-this.nombre = nombre;
-this.apellidos = apellidos;
-this.dni = dni;
-this.direccion = direccion;
-this.telefono1 = telefono1;
-this.telefono2 = telefono2;
-this.argazkiaUrl = argazkiaUrl;
-this.createdAt = createdAt;
-this.updatedAt = updatedAt;
-this.matriculacioneses = matriculacioneses;
-this.reunionesesForAlumnoId = reunionesesForAlumnoId;
-this.horarioses = horarioses;
-this.reunionesesForProfesorId = reunionesesForProfesorId;
-}
+	public Users(Tipos tipos, String email, String username, String password, String nombre, String apellidos,
+			String dni, String direccion, String telefono1, String telefono2, String argazkiaUrl, Timestamp createdAt,
+			Timestamp updatedAt, Set<Matriculaciones> matriculacioneses, Set<Reuniones> reunionesesForAlumnoId,
+			Set<Horarios> horarioses, Set<Reuniones> reunionesesForProfesorId) {
+		this.tipos = tipos;
+		this.email = email;
+		this.username = username;
+		this.password = password;
+		this.nombre = nombre;
+		this.apellidos = apellidos;
+		this.dni = dni;
+		this.direccion = direccion;
+		this.telefono1 = telefono1;
+		this.telefono2 = telefono2;
+		this.argazkiaUrl = argazkiaUrl;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+		this.matriculacioneses = matriculacioneses;
+		this.reunionesesForAlumnoId = reunionesesForAlumnoId;
+		this.horarioses = horarioses;
+		this.reunionesesForProfesorId = reunionesesForProfesorId;
+	}
 
-public Integer getId() {
-return this.id;
-}
+	public Integer getId() {
+		return this.id;
+	}
 
-public void setId(Integer id) {
-this.id = id;
-}
+	public void setId(Integer id) {
+		this.id = id;
+	}
 
-public Tipos getTipos() {
-return this.tipos;
-}
+	public Tipos getTipos() {
+		return this.tipos;
+	}
 
-public void setTipos(Tipos tipos) {
-this.tipos = tipos;
-}
+	public void setTipos(Tipos tipos) {
+		this.tipos = tipos;
+	}
 
-public String getEmail() {
-return this.email;
-}
+	public String getEmail() {
+		return this.email;
+	}
 
-public void setEmail(String email) {
-this.email = email;
-}
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-public String getUsername() {
-return this.username;
-}
+	public String getUsername() {
+		return this.username;
+	}
 
-public void setUsername(String username) {
-this.username = username;
-}
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
-public String getPassword() {
-return this.password;
-}
+	public String getPassword() {
+		return this.password;
+	}
 
-public void setPassword(String password) {
-this.password = password;
-}
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-public String getNombre() {
-return this.nombre;
-}
+	public String getNombre() {
+		return this.nombre;
+	}
 
-public void setNombre(String nombre) {
-this.nombre = nombre;
-}
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
 
-public String getApellidos() {
-return this.apellidos;
-}
+	public String getApellidos() {
+		return this.apellidos;
+	}
 
-public void setApellidos(String apellidos) {
-this.apellidos = apellidos;
-}
+	public void setApellidos(String apellidos) {
+		this.apellidos = apellidos;
+	}
 
-public String getDni() {
-return this.dni;
-}
+	public String getDni() {
+		return this.dni;
+	}
 
-public void setDni(String dni) {
-this.dni = dni;
-}
+	public void setDni(String dni) {
+		this.dni = dni;
+	}
 
-public String getDireccion() {
-return this.direccion;
-}
+	public String getDireccion() {
+		return this.direccion;
+	}
 
-public void setDireccion(String direccion) {
-this.direccion = direccion;
-}
+	public void setDireccion(String direccion) {
+		this.direccion = direccion;
+	}
 
-public String getTelefono1() {
-return this.telefono1;
-}
+	public String getTelefono1() {
+		return this.telefono1;
+	}
 
-public void setTelefono1(String telefono1) {
-this.telefono1 = telefono1;
-}
+	public void setTelefono1(String telefono1) {
+		this.telefono1 = telefono1;
+	}
 
-public String getTelefono2() {
-return this.telefono2;
-}
+	public String getTelefono2() {
+		return this.telefono2;
+	}
 
-public void setTelefono2(String telefono2) {
-this.telefono2 = telefono2;
-}
+	public void setTelefono2(String telefono2) {
+		this.telefono2 = telefono2;
+	}
 
-public String getArgazkiaUrl() {
-return this.argazkiaUrl;
-}
+	public String getArgazkiaUrl() {
+		return this.argazkiaUrl;
+	}
 
-public void setArgazkiaUrl(String argazkiaUrl) {
-this.argazkiaUrl = argazkiaUrl;
-}
+	public void setArgazkiaUrl(String argazkiaUrl) {
+		this.argazkiaUrl = argazkiaUrl;
+	}
 
-public Timestamp getCreatedAt() {
-return this.createdAt;
-}
+	public Timestamp getCreatedAt() {
+		return this.createdAt;
+	}
 
-public void setCreatedAt(Timestamp createdAt) {
-this.createdAt = createdAt;
-}
+	public void setCreatedAt(Timestamp createdAt) {
+		this.createdAt = createdAt;
+	}
 
-public Timestamp getUpdatedAt() {
-return this.updatedAt;
-}
+	public Timestamp getUpdatedAt() {
+		return this.updatedAt;
+	}
 
-public void setUpdatedAt(Timestamp updatedAt) {
-this.updatedAt = updatedAt;
-}
+	public void setUpdatedAt(Timestamp updatedAt) {
+		this.updatedAt = updatedAt;
+	}
 
-public Set<Matriculaciones> getMatriculacioneses() {
-return this.matriculacioneses;
-}
+	public Set<Matriculaciones> getMatriculacioneses() {
+		return this.matriculacioneses;
+	}
 
-public void setMatriculacioneses(Set<Matriculaciones> matriculacioneses) {
-this.matriculacioneses = matriculacioneses;
-}
+	public void setMatriculacioneses(Set<Matriculaciones> matriculacioneses) {
+		this.matriculacioneses = matriculacioneses;
+	}
 
-public Set<Reuniones> getReunionesesForAlumnoId() {
-return this.reunionesesForAlumnoId;
-}
+	public Set<Reuniones> getReunionesesForAlumnoId() {
+		return this.reunionesesForAlumnoId;
+	}
 
-public void setReunionesesForAlumnoId(Set<Reuniones> reunionesesForAlumnoId) {
-this.reunionesesForAlumnoId = reunionesesForAlumnoId;
-}
+	public void setReunionesesForAlumnoId(Set<Reuniones> reunionesesForAlumnoId) {
+		this.reunionesesForAlumnoId = reunionesesForAlumnoId;
+	}
 
-public Set<Horarios> getHorarioses() {
-return this.horarioses;
-}
+	public Set<Horarios> getHorarioses() {
+		return this.horarioses;
+	}
 
-public void setHorarioses(Set<Horarios> horarioses) {
-this.horarioses = horarioses;
-}
+	public void setHorarioses(Set<Horarios> horarioses) {
+		this.horarioses = horarioses;
+	}
 
-public Set<Reuniones> getReunionesesForProfesorId() {
-return this.reunionesesForProfesorId;
-}
+	public Set<Reuniones> getReunionesesForProfesorId() {
+		return this.reunionesesForProfesorId;
+	}
 
-public void setReunionesesForProfesorId(Set<Reuniones> reunionesesForProfesorId) {
-this.reunionesesForProfesorId = reunionesesForProfesorId;
-}
+	public void setReunionesesForProfesorId(Set<Reuniones> reunionesesForProfesorId) {
+		this.reunionesesForProfesorId = reunionesesForProfesorId;
+	}
 
+	public static Users login(String username, String password) {
+
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+			Users user = session
+					.createQuery("FROM Users u JOIN FETCH u.tipos WHERE u.username = :username", Users.class)
+					.setParameter("username", username).uniqueResult();
+
+			if (user == null)
+				return null;
+			if (!user.getPassword().equals(password))
+				return null;
+
+			return user;
+		}
+	}
+
+	public static Users getPerfil(int id) {
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			Users user = session.get(Users.class, id);
+			if (user == null) {
+				return null;
+			}
+			return new Users(user);
+		}
+	}
+
+	public static List<Users> getAlumnosDelProfesor(int idProfesor) {
+		
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			Users user = session.get(Users.class, idProfesor);
+			List<Users> alumnos = session.createQuery(
+					"SELECT DISTINCT m.users " + "FROM Horarios h " + "JOIN h.modulos mod " + "JOIN mod.ciclos c "
+							+ "JOIN Matriculaciones m ON m.ciclos = c " + "WHERE h.users = :prof",
+					Users.class).setParameter("prof", user).getResultList();
+			alumnos.replaceAll( u -> new Users(u));
+			return alumnos;
+		}
+	}
+	@JsonIgnore
+	public static List<Users> getProfesores() {
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			Tipos tipoProfesor = session.get(Tipos.class, 3);
+			List<Users> profesores = session.createQuery("FROM Users u WHERE u.tipos = :tipoProfesor", Users.class)
+					.setParameter("tipoProfesor", tipoProfesor).list();
+			profesores.replaceAll( u -> new Users(u));
+			return profesores;
+		}
+	}
+
+	// Eliminar usuario por id
+	public static boolean eliminarUsuarioPorId(int idUsuario) {
+		org.hibernate.Transaction tx = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			tx = session.beginTransaction();
+			Users u = session.get(Users.class, idUsuario);
+			if (u == null) return false;
+			session.remove(u);
+			tx.commit();
+			return true;
+		} catch (Exception e) {
+			if (tx != null) tx.rollback();
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	// Crear usuario
+	public static boolean crearUsuario(Users u) {
+		org.hibernate.Transaction tx = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			tx = session.beginTransaction();
+			// Si viene el tipo con id, buscarlo
+			if (u.getTipos() != null && u.getTipos().getId() != null) {
+				Tipos t = session.get(Tipos.class, u.getTipos().getId());
+				u.setTipos(t);
+			}
+			java.sql.Timestamp ahora = new java.sql.Timestamp(System.currentTimeMillis());
+			u.setCreatedAt(ahora);
+			u.setUpdatedAt(ahora);
+			session.persist(u);
+			tx.commit();
+			return true;
+		} catch (Exception e) {
+			if (tx != null) tx.rollback();
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	// Actualizar usuario
+	public static boolean actualizarUsuario(Users u) {
+		org.hibernate.Transaction tx = null;
+		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+			tx = session.beginTransaction();
+			Users existente = session.get(Users.class, u.getId());
+			if (existente == null) return false;
+			if (u.getEmail() != null) existente.setEmail(u.getEmail());
+			if (u.getUsername() != null) existente.setUsername(u.getUsername());
+			if (u.getPassword() != null) existente.setPassword(u.getPassword());
+			if (u.getNombre() != null) existente.setNombre(u.getNombre());
+			if (u.getApellidos() != null) existente.setApellidos(u.getApellidos());
+			if (u.getDni() != null) existente.setDni(u.getDni());
+			if (u.getDireccion() != null) existente.setDireccion(u.getDireccion());
+			if (u.getTelefono1() != null) existente.setTelefono1(u.getTelefono1());
+			if (u.getTelefono2() != null) existente.setTelefono2(u.getTelefono2());
+			if (u.getArgazkiaUrl() != null) existente.setArgazkiaUrl(u.getArgazkiaUrl());
+			existente.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+			session.merge(existente);
+			tx.commit();
+			return true;
+		} catch (Exception e) {
+			if (tx != null) tx.rollback();
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+    public static String getTipoUser(int idUsuario) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Users user = session.get(Users.class, idUsuario);
+            if (user != null && user.getTipos() != null && user.getTipos().getName() != null) {
+                return user.getTipos().getName();
+            }
+        }
+        return null;
+    }
 }

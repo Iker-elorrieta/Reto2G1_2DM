@@ -5,14 +5,8 @@ import java.io.DataOutputStream;
 import java.net.Socket;
 import java.util.List;
 
-import org.hibernate.Hibernate;
 
-import com.example.springBt.AlumnoService;
-import com.example.springBt.CentrosService;
-import com.example.springBt.HorarioService;
-import com.example.springBt.LoginService;
-import com.example.springBt.PerfilService;
-import com.example.springBt.ReunionesService;
+import com.example.springBt.PerfilController;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -27,17 +21,13 @@ public class HiloServidor extends Thread {
     private Gson gson;
 
     // Servicios creados UNA sola vez
-    private final LoginService loginService = new LoginService();
-    private final PerfilService perfilService = new PerfilService();
-    private final AlumnoService alumnoService = new AlumnoService();
-    private final HorarioService horarioService = new HorarioService();
-    private final ReunionesService reunionService = new ReunionesService();
-    private final CentrosService centrosService = new CentrosService();
+    private final PerfilController perfilService = new PerfilController();
 
     public HiloServidor(Socket conx) {
         this.conx = conx;
 
         this.gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
                 .setExclusionStrategies(new HibernateProxyExclusionStrategy())
                 .create();
     }
@@ -67,7 +57,15 @@ public class HiloServidor extends Thread {
                             String usuario = entrada.readUTF();
                             String password = entrada.readUTF();
 
-                            Users user = loginService.login(usuario, password);
+                            // Desciframos las credenciales recibidas
+                            try {
+                                usuario = CryptoUtils.decrypt(usuario);
+                                password = CryptoUtils.decrypt(password);
+                            } catch (Exception ex) {
+                                // si hay fallo, usamos los valores tal cual
+                            }
+
+                            Users user = Users.login(usuario, password);
 
                             int codigo;
                             int idUsuario = -1;
@@ -103,9 +101,7 @@ public class HiloServidor extends Thread {
                             int idUsuario = entrada.readInt();
 
                             Users user = perfilService.getPerfil(idUsuario);
-                            if (user != null) {
-                                limpiarUsuario(user);
-                            }
+                      
                             String jsonResponse = (user != null) ? gson.toJson(user) : "";
 
                             salida.writeUTF(jsonResponse);
@@ -119,10 +115,8 @@ public class HiloServidor extends Thread {
                         case "GET_ALUMNOS": {
                             int idProfesor = entrada.readInt();
 
-                            List<Users> alumnos = alumnoService.getAlumnosDelProfesor(idProfesor);
-                            if (alumnos != null) {
-                                alumnos.forEach(this::limpiarUsuario);
-                            }
+                            List<Users> alumnos = perfilService.getAlumnosDelProfesor(idProfesor);
+             
                             String jsonResponse = gson.toJson(alumnos);
 
                             salida.writeUTF(jsonResponse);
@@ -136,12 +130,8 @@ public class HiloServidor extends Thread {
 	                        case "GET_HORARIO": {
 	                            int idProfesor = entrada.readInt();
 	
-	                            List<Horarios> horarios = horarioService.obtenerHorarioProfesor(idProfesor);
-	                            if (horarios != null) {
-	                                for (Horarios h : horarios) {
-	                                    limpiarUsuario(h.getUsers());
-	                                }
-	                            }
+	                            List<Horarios> horarios = Horarios.obtenerHorarioProfesor(idProfesor);
+	                      
 	                            String jsonResponse = gson.toJson(horarios);
 	
 	                            salida.writeUTF(jsonResponse);
@@ -154,10 +144,8 @@ public class HiloServidor extends Thread {
 
                         // ================= GET_PROFESORES =================
                         case "GET_PROFESORES": {
-                            List<Users> profesores = alumnoService.getProfesores();
-                            if (profesores != null) {
-                                profesores.forEach(this::limpiarUsuario);
-                            }
+                            List<Users> profesores = perfilService.getProfesores();
+                    
                             String jsonResponse = gson.toJson(profesores);
 
                             salida.writeUTF(jsonResponse);
@@ -170,20 +158,70 @@ public class HiloServidor extends Thread {
 
                         // ================= CREAR_REUNION =================
                         case "CREAR_REUNION": {
-                            String jsonReunion = entrada.readUTF();
-                            Reuniones reunion = gson.fromJson(jsonReunion, Reuniones.class);
+                            try {
+                                String jsonReunion = entrada.readUTF();
+                                Reuniones reunion = gson.fromJson(jsonReunion, Reuniones.class);
 
-                            boolean creada = reunionService.crearReunion(reunion);
-                            salida.writeBoolean(creada);
-                            salida.flush();
+                                boolean creada = false;
+                                try {
+                                    creada = reunion.crearReunion();
+                                } catch (Exception inner) {
+                                    inner.printStackTrace();
+                                    creada = false;
+                                }
 
-                            System.out.println("Reunión " + (creada ? "creada" : "fallida") + ": " + reunion.getTitulo());
+                                salida.writeBoolean(creada);
+                                salida.flush();
+
+                                System.out.println("Reunión " + (creada ? "creada" : "fallida") + ": " + reunion.getTitulo());
+                            } catch (Exception ex) {
+                                // Error procesando petición -> intentar responder false y continuar
+                                ex.printStackTrace();
+                                try {
+                                    salida.writeBoolean(false);
+                                    salida.flush();
+                                } catch (Exception ioex) {
+                                    ioex.printStackTrace();
+                                }
+                                activo = false;
+                            }
+                            break;
+                        }
+
+                        // ================= MODIFICAR_REUNION =================
+                        case "MODIFICAR_REUNION": {
+                            try {
+                                String jsonReunion = entrada.readUTF();
+                                Reuniones reunion = gson.fromJson(jsonReunion, Reuniones.class);
+
+                                boolean modificado = false;
+                                try {
+                                    modificado = Reuniones.actualizarReunion(reunion);
+                                } catch (Exception inner) {
+                                    inner.printStackTrace();
+                                    modificado = false;
+                                }
+
+                                salida.writeBoolean(modificado);
+                                salida.flush();
+
+                                System.out.println("Reunión " + (modificado ? "modificada" : "fallida") + ": id=" + reunion.getIdReunion());
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                                try {
+                                    salida.writeBoolean(false);
+                                    salida.flush();
+                                } catch (Exception ioex) {
+                                    ioex.printStackTrace();
+                                }
+                                activo = false;
+                            }
                             break;
                         }
 
                         // ================= GET_CENTROS =================
                         case "GET_CENTROS": {
-                            List<Centro> centros = centrosService.obtenerTodosCentros();
+                            List<Centro> centros = Centro.obtenerCentros();
                             String jsonResponse = gson.toJson(centros);
 
                             byte[] data = jsonResponse.getBytes("UTF-8");
@@ -198,22 +236,16 @@ public class HiloServidor extends Thread {
                         // ================= GET_REUNIONES (pendiente) =================
                         case "GET_REUNIONES": {
                             int idProfesor = entrada.readInt();
-                            List<Reuniones> reuniones = reunionService.obtenerReunionesProfesor(idProfesor);
-
-                            if (reuniones != null) {
-                                for (Reuniones r : reuniones) {
-                                    limpiarUsuario(r.getAlumno());
-                                    limpiarUsuario(r.getProfesor());
-                                }
-                            }
+                            List<Reuniones> reuniones = Reuniones.obtenerReunionesProfesor(idProfesor);
 
                             String json = gson.toJson(reuniones);
                             byte[] data = json.getBytes("UTF-8");
                             salida.writeInt(data.length);
                             salida.write(data);
+                            salida.flush();
+                            System.out.println("Reuniones enviadas para profesor: " + idProfesor);
                             break;
                         }
-
 
                         // ================= DESCONOCIDO =================
                         default:
@@ -222,8 +254,8 @@ public class HiloServidor extends Thread {
                     }
 
                 } catch (Exception e) {
-                    System.out.println("Error procesando comando: " + e.getMessage());
-                    e.printStackTrace();
+                   // System.out.println("Error procesando comando: " + e.getMessage());
+                   // e.printStackTrace();
                     activo = false;
                 }
             }
@@ -239,19 +271,6 @@ public class HiloServidor extends Thread {
                 System.out.println("Error cerrando socket: " + ex.getMessage());
             }
         }
-    }
 
-    private void limpiarUsuario(Users u) {
-        if (u == null) return;
-
-        if (u.getTipos() != null) {
-            Hibernate.initialize(u.getTipos());
-            u.getTipos().setUserses(null);
-        }
-
-        u.setMatriculacioneses(null);
-        u.setReunionesesForAlumnoId(null);
-        u.setReunionesesForProfesorId(null);
-        u.setHorarioses(null);
     }
 }
